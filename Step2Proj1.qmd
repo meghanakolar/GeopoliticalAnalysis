@@ -17,6 +17,14 @@ tuesdata <- tidytuesdayR::tt_load('2024-11-05')
 democracy_data <- tuesdata$democracy_data
 ```
 
+## Context
+
+This is a long data frame with 14,768 observations and 43 variables. Each row contains political information for one country during a particular year. The variables of the data frame provide information on whether a country is democratic, what type of regime the country has, the structure of the political system, along with information on elections, leaders, suffrage, power changes, and colonial history. There are variables about whether the leader is a president or a monarch, when their leadership term began, their gender, and their birth year. Three variables provide information on timing of regime or leadership changes. Lastly, three variables provide information on colonial status and relationships of a country.
+
+## What Cleaning Has Been Done?
+
+First, variables were renamed to all lowercase names with clean_names(). Then, many variable names were renamed to clearer and more descriptive names (for example, dd_regime became regime_category_index). Next, "?" values in the election_month column were converted to NA with na_if(), before the column was split into separate month and year variables with separate_wider_regex(). A new variable, electoral_category, is created using case_match() from electoral_category_index which contained values of 0-3 that measure the level of electoral competition; a 0 means no elections, a 1 means single-party elections, a 2 means non-democratic multi-party elections, and a 3 means democratic elections. Also, str_squish() was used to clean up whitespaces in the election_month variable. Lastly, variables were converted to appropriate data types using across(); year/count columns became numeric and indicator variables (starting with \_is or \_has) became logical.
+
 **Question 1:** Among countries in the year 2000, how does the proportion of full suffrage differ across electoral systems (monarchy vs. presidential)?
 
 -   No New column w Custom Function
@@ -47,7 +55,6 @@ data.frame(
   system = c("Overall", "Monarchy", "Presidential"),
   proportion_full_suffrage = c(overall_prop, monarchy_prop, presidential_prop)
 )
-
 ```
 
 \*\***Conclusion:** \*\*
@@ -58,7 +65,7 @@ The data shows that approximately \*\*95.6%\*\* of all countries in the sample h
 
 However, this is a correlation and not causation, meaning that the type of electoral system does not necessarily cause differences in suffrage.
 
-**Question 2:**
+**Question 2:** How have gender gaps in presidential and monarchical leadership evolved across decades, and are these gaps larger in non-democratic countries?
 
 -   Modified Columns and a Custom Function
 
