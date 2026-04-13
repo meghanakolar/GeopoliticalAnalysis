@@ -186,7 +186,6 @@ for(j in c("Presidential democracy", "Royal dictatorship")){
 }
 }
 suff_results
-
 ```
 
 **\*\*Conclusion\*\***
