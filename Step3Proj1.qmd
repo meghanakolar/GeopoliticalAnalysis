@@ -38,9 +38,9 @@ This proportion is available for most countries from 1997-2020. There are missin
 -   [Where we found the data](https://databank.worldbank.org/source/sustainable-development-goals-(sdgs)#)
 -   [Variable description from World Bank](https://databank.worldbank.org/metadataglossary/world-development-indicators/series/SG.GEN.PARL.ZS)
 
-## New Data from Demographics and Financial Data API 
+## New Data from Demographics and Financial Data API
 
-The GDP API provides information on past and current GDP information for countries around the world. The GDP API offers a wide variety of GDP data per country, such as the GDP growth rate as a percentage, GDP at purchasing power parity, and nominal GDP. However, for this project, we only decided to focus on the nominal GDP variable, called gdp_nominal. This variable is measured in billions of US dollars. We also extracted the country variable, which is stored as a 3 letter country code, and the year. It is important to keep in mind that the API did not provide the nominal GDP for every country and/or for every year. The gdp_nominal variable also stored the predicted nominal GDP for future years, so we had to clean the data to remove years beyond 2025. 
+The GDP API provides information on past and current GDP information for countries around the world. The GDP API offers a wide variety of GDP data per country, such as the GDP growth rate as a percentage, GDP at purchasing power parity, and nominal GDP. However, for this project, we only decided to focus on the nominal GDP variable, called gdp_nominal. This variable is measured in billions of US dollars. We also extracted the country variable, which is stored as a 3 letter country code, and the year. It is important to keep in mind that the API did not provide the nominal GDP for every country and/or for every year. The gdp_nominal variable also stored the predicted nominal GDP for future years, so we had to clean the data to remove years beyond 2025.
 
 ```{r}
 #| eval: false
@@ -213,4 +213,6 @@ As another test, let us check whether these results are statistically significan
 t.test(prop_in_par ~ is_democracy, data = democracy_data)
 ```
 
-Since this confidence interval does NOT include zero, we can conclude that we have more support that the null hypothesis is true- the true difference in means between democratic and non democratic countries is not significant. Our p-value is about 4.5, and our t-value is about -4.59, which are pretty high above the standard alpha level of 0.05.
+Since the confidence interval does not include zero, we reject the null hypothesis and conclude that there is a statistically significant difference in the mean proportion of seats held by women between democratic and non-democratic countries. This suggests that the true difference in means is not zero.
+
+The t-statistic is approximately −4.59, and the p-value is very small, so it is less than a standard significance level of 0.05. This provides strong evidence against the null hypothesis and supports the conclusion that the difference in means is statistically significant.
