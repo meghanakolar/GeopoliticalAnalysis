@@ -38,6 +38,10 @@ This proportion is available for most countries from 1997-2020. There are missin
 -   [Where we found the data](https://databank.worldbank.org/source/sustainable-development-goals-(sdgs)#)
 -   [Variable description from World Bank](https://databank.worldbank.org/metadataglossary/world-development-indicators/series/SG.GEN.PARL.ZS)
 
+## New Data from Demographics and Financial Data API 
+
+The GDP API provides information on past and current GDP information for countries around the world. The GDP API offers a wide variety of GDP data per country, such as the GDP growth rate as a percentage, GDP at purchasing power parity, and nominal GDP. However, for this project, we only decided to focus on the nominal GDP variable, called gdp_nominal. This variable is measured in billions of US dollars. We also extracted the country variable, which is stored as a 3 letter country code, and the year. It is important to keep in mind that the API did not provide the nominal GDP for every country and/or for every year. The gdp_nominal variable also stored the predicted nominal GDP for future years, so we had to clean the data to remove years beyond 2025. 
+
 ```{r}
 #| eval: false
 #| echo: false
@@ -51,9 +55,9 @@ get_gdp <- function(country, key = my_key)
   url <- glue("https://api.api-ninjas.com/v1/gdp?country={country};X-Api-Key={key}")
   my_data <- safely(fromJSON)(url)
 
-  parsed <- my_data$result
+  result <- my_data$result
 
-  if (is.null(parsed) || length(parsed$year) == 0) {
+  if (is.null(result) || length(result$year) == 0) {
     return(NULL)
   } else {
     return(
