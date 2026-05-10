@@ -8,16 +8,6 @@ format:
     css: dashboard-styles.css
     logo: logo.png
     logo-alt: "Democracy and Gender in Leadership project logo."
-nav-buttons:
-  - icon: github
-    href: https://github.com/meghanakolar/GeopoliticalAnalysis
-    aria-label: GitHub
-  - icon: linkedin
-    href: https://www.linkedin.com/in/meghanakolar/
-    aria-label: LinkedIn
-  - icon: envelope
-    href: mailto:mkolar@calpoly.edu
-    aria-label: Email
 ---
 
 ```{r}
@@ -30,22 +20,21 @@ library(broom)
 
 democracy_data <- read.csv("Combined_Democracy_Data.csv")
 
-blue_dark   <- "#5b8db8"
-blue_mid    <- "#89afd4"
-blue_light  <- "#bdd4e7"
-blue_pale   <- "#ddeaf5"
+blue_dark <- "#5b8db8"
+blue_mid <- "#89afd4"
+blue_light <- "#bdd4e7"
+blue_pale <- "#ddeaf5"
 pink_accent <- "#e8a0b0"
-pink_pale   <- "#f5d5dc"
-black       <- "#000000"
-white       <- "#FFFFFF"
+pink_pale <- "#f5d5dc"
+black <- "#000000"
+white <- "#FFFFFF"
 
 pal <- wes_palette("Moonrise3", n = 5)
 
 theme_set(theme_minimal(base_size = 13, base_family = "Georgia"))
 
 democracy_data <- democracy_data |>
-  mutate(
-    president_age_at_accession = president_accesion_year - president_birthyear,
+  mutate(president_age_at_accession = president_accesion_year - president_birthyear,
     monarch_age_at_accession   = monarch_accession_year  - monarch_birthyear,
     has_female_leader = ifelse(is_female_president | is_female_monarch, 1, 0),
     decade = case_when(
@@ -55,40 +44,36 @@ democracy_data <- democracy_data |>
       year < 1990 ~ "1980-1989",
       year < 2000 ~ "1990-1999",
       year < 2010 ~ "2000-2009",
-      TRUE        ~ "2010-2020"
-    )
-  )
+      TRUE  ~ "2010-2020"))
 
 summarise_leadership_gender_gap <- function(group_var) {
   democracy_data |>
     filter(!is.na(.data[[group_var]])) |>
     group_by(across(all_of(group_var))) |>
-    summarise(
-      n = n(),
+    summarise(n = n(),
       prop_female_president = mean(ifelse(!is_monarchy, is_female_president, NA), na.rm = TRUE),
-      prop_male_president   = mean(ifelse(!is_monarchy, !is_female_president, NA), na.rm = TRUE),
-      gap_president_prop    = prop_male_president - prop_female_president,
+      prop_male_president = mean(ifelse(!is_monarchy, !is_female_president, NA), na.rm = TRUE),
+      gap_president_prop = prop_male_president - prop_female_president,
       avg_accession_age_female_president = mean(
         president_age_at_accession[is_presidential & is_female_president], na.rm = TRUE),
       avg_accession_age_male_president = mean(
         president_age_at_accession[is_presidential & !is_female_president], na.rm = TRUE),
       gap_president_accession_age = avg_accession_age_male_president - avg_accession_age_female_president,
       prop_female_monarch = mean(ifelse(is_monarchy, is_female_monarch, NA), na.rm = TRUE),
-      prop_male_monarch   = mean(ifelse(is_monarchy, !is_female_monarch, NA), na.rm = TRUE),
-      gap_monarch_prop    = prop_male_monarch - prop_female_monarch,
+      prop_male_monarch = mean(ifelse(is_monarchy, !is_female_monarch, NA), na.rm = TRUE),
+      gap_monarch_prop  = prop_male_monarch - prop_female_monarch,
       avg_accession_age_female_monarch = mean(
         monarch_age_at_accession[is_monarchy & is_female_monarch], na.rm = TRUE),
       avg_accession_age_male_monarch = mean(
         monarch_age_at_accession[is_monarchy & !is_female_monarch], na.rm = TRUE),
       gap_monarch_accession_age = avg_accession_age_male_monarch - avg_accession_age_female_monarch,
-      .groups = "drop"
-    )
+      .groups = "drop")
 }
 
 plotMe <- summarise_leadership_gender_gap("year")
 
 democracy_data <- democracy_data |> arrange(country, year)
-democracy_data$to_democracy   <- 0
+democracy_data$to_democracy <- 0
 democracy_data$from_democracy <- 0
 
 for (i in 2:nrow(democracy_data)) {
@@ -104,32 +89,20 @@ for (i in 2:nrow(democracy_data)) {
 
 summary_data <- democracy_data |>
   group_by(year) |>
-  summarize(
-    prop_democracy  = mean(is_democracy, na.rm = TRUE),
-    transitions_in  = sum(to_democracy,   na.rm = TRUE),
+  summarize(prop_democracy = mean(is_democracy, na.rm = TRUE),
+    transitions_in  = sum(to_democracy, na.rm = TRUE),
     transitions_out = sum(from_democracy, na.rm = TRUE),
-    .groups = "drop"
-  )
+    .groups = "drop")
 
 democracy_data <- democracy_data |>
   mutate(ten_yrs = floor(year / 10) * 10)
 
 summary_ten_yrs <- democracy_data |>
   group_by(ten_yrs) |>
-  summarize(
-    prop_democracy  = mean(is_democracy, na.rm = TRUE),
+  summarize(prop_democracy = mean(is_democracy, na.rm = TRUE),
     transitions_in  = sum(to_democracy,   na.rm = TRUE),
     transitions_out = sum(from_democracy, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-cor_matrix <- summary_data |>
-  select(prop_democracy, transitions_in, transitions_out) |>
-  cor(use = "complete.obs")
-
-cor_df <- as.data.frame(cor_matrix) |>
-  rownames_to_column("var1") |>
-  pivot_longer(-var1, names_to = "var2", values_to = "correlation")
+    .groups = "drop")
 
 topn_countries <- function(start_year = 1950, end_year = 2020, num_countries = 10) {
   if (start_year < 1950 | end_year > 2020 | start_year > end_year)
@@ -139,21 +112,17 @@ topn_countries <- function(start_year = 1950, end_year = 2020, num_countries = 1
     filter(year >= start_year & year <= end_year) |>
     arrange(country_name, year) |>
     group_by(country_name) |>
-    mutate(
-      prev_year      = lag(is_democracy),
-      to_democracy   = ifelse(is_democracy == 1 & prev_year == 0, 1, 0),
-      from_democracy = ifelse(is_democracy == 0 & prev_year == 1, 1, 0)
-    ) |>
+    mutate(prev_year = lag(is_democracy),
+      to_democracy = ifelse(is_democracy == 1 & prev_year == 0, 1, 0),
+      from_democracy = ifelse(is_democracy == 0 & prev_year == 1, 1, 0)) |>
     ungroup()
 
   data |>
     group_by(country_name) |>
-    summarize(
-      transitions_in    = sum(to_democracy,   na.rm = TRUE),
-      transitions_out   = sum(from_democracy, na.rm = TRUE),
+    summarize(transitions_in  = sum(to_democracy,   na.rm = TRUE),
+      transitions_out = sum(from_democracy, na.rm = TRUE),
       total_transitions = transitions_in + transitions_out,
-      .groups = "drop"
-    ) |>
+      .groups = "drop") |>
     arrange(desc(total_transitions)) |>
     slice_head(n = num_countries)
 }
@@ -161,10 +130,11 @@ topn_countries <- function(start_year = 1950, end_year = 2020, num_countries = 1
 
 # Gender Gaps in Leadership and Representation
 
-## Column {width="58%"}
+## Column {width=58%}
 
-:::: {.card title="Visualizations"}
-::: panel-tabset
+::: {.card title="Visualizations"}
+::: {.panel-tabset}
+
 ### Women in Parliament
 
 ```{r}
@@ -174,8 +144,7 @@ democracy_data |>
   ggplot(aes(x = is_democracy, y = prop_in_par)) +
   geom_boxplot(
     fill = c(blue_mid, blue_dark),
-    color = black, outlier.color = black
-  ) +
+    color = black, outlier.color = black) +
   stat_summary(fun = mean, geom = "crossbar", color = black,
                width = 0.75, linetype = "dotted", linewidth = 0.3) +
   stat_summary(fun = mean, geom = "text",
@@ -186,11 +155,9 @@ democracy_data |>
                vjust = 1.5, color = "white", size = 3.5) +
   scale_y_continuous(labels = scales::label_percent(scale = 1)) +
   labs(x = "Democracy Status", y = "% of Parliament Seats Held by Women") +
-  theme(
-    panel.grid.minor = element_blank(),
+  theme(panel.grid.minor = element_blank(),
     axis.title = element_text(color = blue_dark),
-    axis.text  = element_text(color = blue_dark)
-  )
+    axis.text  = element_text(color = blue_dark))
 ```
 
 ### Accession Ages Over Time
@@ -208,88 +175,73 @@ plotMe |>
                   ymax = avg_accession_age_male_monarch),
               fill = pink_pale, alpha = 0.8) +
   geom_line(aes(y = avg_accession_age_female_president, color = "Female President"), linewidth = 1.4) +
-  geom_line(aes(y = avg_accession_age_male_president,   color = "Male President"),   linewidth = 1.4) +
-  geom_line(aes(y = avg_accession_age_female_monarch,   color = "Female Monarch"),   linewidth = 1.4) +
-  geom_line(aes(y = avg_accession_age_male_monarch,     color = "Male Monarch"),     linewidth = 1.4) +
+  geom_line(aes(y = avg_accession_age_male_president, color = "Male President"), linewidth = 1.4) +
+  geom_line(aes(y = avg_accession_age_female_monarch, color = "Female Monarch"), linewidth = 1.4) +
+  geom_line(aes(y = avg_accession_age_male_monarch, color = "Male Monarch"), linewidth = 1.4) +
   scale_color_manual(
     name = "Leader Type",
-    values = c("Female President" = pink_accent, "Male President" = blue_dark,
-               "Female Monarch"   = pink_accent, "Male Monarch"   = blue_mid),
-    breaks = c("Female President", "Male President", "Female Monarch", "Male Monarch")
-  ) +
+    values = c("Female President" = pink_accent, "Male President" = blue_dark, "Female Monarch" = pink_accent, "Male Monarch"   = blue_mid),
+    breaks = c("Female President", "Male President", "Female Monarch", "Male Monarch")) +
   scale_x_continuous(limits = c(1980, 2020)) +
   scale_y_continuous(limits = c(20, 70)) +
   labs(x = "Year", y = "Average Accession Age", color = "Leader Type") +
-  theme(
-    panel.grid.minor  = element_blank(),
-    legend.position   = "bottom",
+  theme(panel.grid.minor  = element_blank(),
+    legend.position = "bottom",
     legend.direction  = "horizontal",
     legend.background = element_rect(fill = "white", color = blue_light),
-    legend.text       = element_text(size = 9, color = blue_dark),
-    legend.title      = element_text(size = 9, color = blue_dark),
-    axis.title        = element_text(color = blue_dark),
-    axis.text         = element_text(color = blue_dark)
-  )
+    legend.text = element_text(size = 9, color = blue_dark),
+    legend.title  = element_text(size = 9, color = blue_dark),
+    axis.title = element_text(color = blue_dark),
+    axis.text = element_text(color = blue_dark))
 ```
+
 :::
-::::
+:::
 
-## Column {width="42%"}
+## Column {width=42%}
 
-:::::: {.card title="Tables"}
-::::: panel-tabset
+::: {.card title="Tables"}
+::: {.panel-tabset}
+
 ### Women in Parliament
 
 ```{r}
-result       <- t.test(prop_in_par ~ is_democracy, data = democracy_data)
+result  <- t.test(prop_in_par ~ is_democracy, data = democracy_data)
 table_result <- tidy(result)
 
 table_result |>
   select(estimate1, estimate2, statistic, p.value, conf.low, conf.high, parameter) |>
   gt() |>
-  tab_header(
-    title    = md("**Table 1: Welch Two-Sample t-Test**"),
-    subtitle = "Proportion of Parliament Seats Held by Women"
-  ) |>
+  tab_header(title = md("**Table 1: Welch Two-Sample t-Test**"),
+    subtitle = "Proportion of Parliament Seats Held by Women") |>
   cols_label(
     estimate1 = md("Mean<br>(Non-Dem.)"),
     estimate2 = md("Mean<br>(Dem.)"),
     statistic = md("*t*"),
-    p.value   = md("*p*-value"),
+    p.value = md("*p*-value"),
     conf.low  = "CI Low",
     conf.high = "CI High",
-    parameter = md("*df*")
-  ) |>
+    parameter = md("*df*")) |>
   fmt_number(columns = c(estimate1, estimate2, statistic, conf.low, conf.high), decimals = 3) |>
   fmt_number(columns = parameter, decimals = 1) |>
   fmt_scientific(columns = p.value, decimals = 3) |>
-  tab_style(
-    style     = list(cell_fill(color = pink_pale), cell_text(weight = "bold", color = blue_dark)),
-    locations = cells_body(columns = p.value)
-  ) |>
-  tab_style(
-    style     = cell_fill(color = blue_pale),
-    locations = list(cells_column_spanners(), cells_column_labels(), cells_title())
-  ) |>
-  tab_style(
-    style     = cell_text(color = blue_dark),
-    locations = list(cells_column_labels(), cells_title(), cells_body())
-  ) |>
-  tab_footnote(
-    footnote  = "Highlighted p-value is statistically significant (p < 0.05).",
-    locations = cells_column_labels(columns = p.value)
-  ) |>
-  tab_options(
-    table.font.size                = px(13),
-    data_row.padding               = px(5),
-    table.background.color         = "white",
-    column_labels.background.color = blue_pale
-  ) |>
+  tab_style(style = list(cell_fill(color = pink_pale), cell_text(weight = "bold", color = blue_dark)),
+    locations = cells_body(columns = p.value)) |>
+  tab_style(style = cell_fill(color = blue_pale),
+    locations = list(cells_column_spanners(), cells_column_labels(), cells_title())) |>
+  tab_style(style = cell_text(color = blue_dark),
+    locations = list(cells_column_labels(), cells_title(), cells_body())) |>
+  tab_footnote(footnote= "Highlighted p-value is statistically significant (p < 0.05).",
+    locations = cells_column_labels(columns = p.value)) |>
+  tab_options(table.font.size = px(13),
+    data_row.padding = px(5),
+    table.background.color = "white",
+    column_labels.background.color = blue_pale) |>
   opt_table_font(font = google_font("Source Serif 4"))
 ```
 
 ::: {.card style="background-color: #f7fbff; border: 1px solid #bdd4e7; padding: 1rem; margin-top: 1rem;"}
-The t-test (t = -4.591, p \< 0.001) confirms a statistically significant difference in women's parliamentary representation between democratic and non-democratic countries. Democratic countries average **17.7%** versus **16.0%** for non-democracies, with a confidence interval that excludes zero.
+The t-test (t = -4.591, p < 0.001) confirms a statistically significant difference in women's parliamentary representation between democratic and non-democratic countries. Democratic countries average **17.7%** versus **16.0%** for non-democracies, with a confidence interval that excludes zero.
 :::
 
 ### Accession Ages Over Time
@@ -297,74 +249,51 @@ The t-test (t = -4.591, p \< 0.001) confirms a statistically significant differe
 ```{r}
 summarise_leadership_gender_gap("is_democracy") |>
   mutate(is_democracy = ifelse(is_democracy, "Democracy", "Non-Democracy")) |>
-  select(
-    is_democracy,
-    n,
+  select(is_democracy, n,
     avg_accession_age_female_president,
     avg_accession_age_male_president,
     gap_president_accession_age,
     avg_accession_age_female_monarch,
     avg_accession_age_male_monarch,
-    gap_monarch_accession_age
-  ) |>
+    gap_monarch_accession_age) |>
   gt() |>
-  tab_header(
-    title    = md("**Table 2: Gender Gaps in Accession Age**"),
-    subtitle = "Average Age When Leaders First Take Office"
-  ) |>
+  tab_header(title = md("**Table 2: Gender Gaps in Accession Age**"),
+    subtitle = "Average Age When Leaders First Take Office") |>
   tab_spanner(label = "Presidents",
     columns = c(avg_accession_age_female_president, avg_accession_age_male_president,
                 gap_president_accession_age)) |>
   tab_spanner(label = "Monarchs",
     columns = c(avg_accession_age_female_monarch, avg_accession_age_male_monarch,
                 gap_monarch_accession_age)) |>
-  cols_label(
-    is_democracy                       = "Status",
-    n                                  = "N",
+  cols_label(is_democracy = "Status",
+    n = "N",
     avg_accession_age_female_president = "Female",
-    avg_accession_age_male_president   = "Male",
-    gap_president_accession_age        = "Gap (M-F)",
-    avg_accession_age_female_monarch   = "Female",
-    avg_accession_age_male_monarch     = "Male",
-    gap_monarch_accession_age          = "Gap (M-F)"
-  ) |>
-  fmt_number(
-    columns  = c(avg_accession_age_female_president, avg_accession_age_male_president,
-                 gap_president_accession_age, avg_accession_age_female_monarch,
-                 avg_accession_age_male_monarch, gap_monarch_accession_age),
-    decimals = 1
-  ) |>
+    avg_accession_age_male_president = "Male",
+    gap_president_accession_age = "Gap (M-F)",
+    avg_accession_age_female_monarch = "Female",
+    avg_accession_age_male_monarch = "Male",
+    gap_monarch_accession_age = "Gap (M-F)") |>
+  fmt_number(columns = c(avg_accession_age_female_president, avg_accession_age_male_president, gap_president_accession_age, avg_accession_age_female_monarch, avg_accession_age_male_monarch, gap_monarch_accession_age),
+    decimals = 1) |>
   fmt_integer(columns = n) |>
-  tab_style(
-    style     = cell_fill(color = blue_pale),
-    locations = list(cells_column_spanners(), cells_column_labels(), cells_title())
-  ) |>
-  tab_style(
-    style     = cell_text(color = blue_dark),
-    locations = list(cells_column_labels(), cells_title(), cells_body())
-  ) |>
-  tab_style(
-    style     = cell_fill(color = pink_pale),
+  tab_style(style = cell_fill(color = blue_pale),
+    locations = list(cells_column_spanners(), cells_column_labels(), cells_title())) |>
+  tab_style(style = cell_text(color = blue_dark),
+    locations = list(cells_column_labels(), cells_title(), cells_body())) |>
+  tab_style(style = cell_fill(color = pink_pale),
     locations = cells_body(
       columns = c(gap_president_accession_age, gap_monarch_accession_age),
-      rows    = gap_president_accession_age > 0)
-  ) |>
-  tab_style(
-    style     = cell_fill(color = blue_light),
+      rows= gap_president_accession_age > 0)) |>
+  tab_style(style = cell_fill(color = blue_light),
     locations = cells_body(
       columns = c(gap_president_accession_age, gap_monarch_accession_age),
-      rows    = gap_president_accession_age < 0)
-  ) |>
-  tab_footnote(
-    footnote  = "Blue = males higher; pink = females higher.",
-    locations = cells_column_labels(columns = c(gap_president_accession_age, gap_monarch_accession_age))
-  ) |>
-  tab_options(
-    table.font.size                = px(13),
-    data_row.padding               = px(5),
-    table.background.color         = "white",
-    column_labels.background.color = blue_pale
-  ) |>
+      rows = gap_president_accession_age < 0)) |>
+  tab_footnote(footnote = "Blue = males higher; pink = females higher.",
+    locations = cells_column_labels(columns = c(gap_president_accession_age, gap_monarch_accession_age))) |>
+  tab_options(table.font.size = px(13),
+    data_row.padding = px(5),
+    table.background.color = "white",
+    column_labels.background.color = blue_pale) |>
   opt_table_font(font = google_font("Source Serif 4"))
 ```
 
@@ -381,347 +310,226 @@ summarise_leadership_gender_gap("decade") |>
   select(decade, n, prop_female_president, prop_male_president, gap_president_prop) |>
   gt() |>
   tab_header(title = md("**Table 3: Gender Gaps by Decade**")) |>
-  cols_label(
-    decade                = "Decade",
-    n                     = "Sample Size",
+  cols_label(decade = "Decade", n = "Sample Size",
     prop_female_president = "Prop. Female President",
-    prop_male_president   = "Prop. Male President",
-    gap_president_prop    = "Gap (M - F)"
-  ) |>
-  fmt_percent(
-    columns  = c(prop_female_president, prop_male_president, gap_president_prop),
-    decimals = 1
-  ) |>
+    prop_male_president = "Prop. Male President",
+    gap_president_prop = "Gap (M - F)") |>
+  fmt_percent(columns = c(prop_female_president, prop_male_president, gap_president_prop),
+    decimals = 1) |>
   fmt_integer(columns = n) |>
-  tab_style(
-    style     = cell_fill(color = blue_pale),
-    locations = list(cells_column_labels(), cells_title())
-  ) |>
-  tab_style(
-    style     = cell_text(color = blue_dark),
-    locations = list(cells_column_labels(), cells_title(), cells_body())
-  ) |>
-  tab_style(
-    style     = cell_fill(color = paste0(pal3[2], "99")),
-    locations = cells_body(columns = gap_president_prop, rows = gap_president_prop > 0)
-  ) |>
-  tab_style(
-    style     = cell_fill(color = paste0(pal3[3], "99")),
-    locations = cells_body(columns = gap_president_prop, rows = gap_president_prop < 0)
-  ) |>
-  tab_footnote(
-    footnote  = "Positive gap means more male than female presidents. Gap narrows across decades.",
-    locations = cells_column_labels(columns = gap_president_prop)
-  ) |>
-  tab_options(
-    table.font.size                = px(13),
-    data_row.padding               = px(5),
-    table.background.color         = "white",
-    column_labels.background.color = blue_pale
-  ) |>
+  tab_style(style = cell_fill(color = blue_pale),
+    locations = list(cells_column_labels(), cells_title())) |>
+  tab_style(style = cell_text(color = blue_dark),
+    locations = list(cells_column_labels(), cells_title(), cells_body())) |>
+  tab_style(style = cell_fill(color = paste0(pal3[2], "99")),
+    locations = cells_body(columns = gap_president_prop, rows = gap_president_prop > 0)) |>
+  tab_style(style = cell_fill(color = paste0(pal3[3], "99")),
+    locations = cells_body(columns = gap_president_prop, rows = gap_president_prop < 0)) |>
+  tab_footnote(footnote= "Positive gap means more male than female presidents. Gap narrows across decades.",
+    locations = cells_column_labels(columns = gap_president_prop)) |>
+  tab_options(table.font.size = px(13),
+    data_row.padding = px(5),
+    table.background.color = "white",
+    column_labels.background.color = blue_pale) |>
   opt_table_font(font = google_font("Source Serif 4"))
 ```
-:::::
-::::::
 
-# Democratic Transitions
+:::
+:::
 
-## Column {width="58%"}
-
-:::: {.card title="Visualizations"}
-::: panel-tabset
-### Proportion of Democracies Over Time
+# Interactive Visualizations {orientation="columns"}
 
 ```{r}
-ggplot(summary_data, aes(x = year, y = prop_democracy)) +
-  geom_point(color = blue_dark, size = 2) +
-  geom_line(color = blue_dark, linewidth = 0.75) +
-  scale_y_continuous(
-    breaks = seq(0, 1, 0.2),
-    limits = c(0, 1),
-    labels = scales::percent_format()
-  ) +
-  scale_x_continuous(breaks = seq(1950, 2020, 10)) +
-  labs(x = "Year", y = "Percentage of Democratic Countries") +
-  theme(
-    panel.grid.minor = element_blank(),
-    axis.title = element_text(color = blue_dark),
-    axis.text  = element_text(color = blue_dark)
-  )
-```
+country_summaries <- democracy_data |>
+  arrange(country, year, country_name) |>
+  group_by(country) |>
+  summarize(country_name = first(country_name),
+    avg_prop_in_par = mean(prop_in_par, na.rm = TRUE),
+    pct_years_democratic = mean(is_democracy, na.rm = TRUE),
+    total_transitions = sum(to_democracy + from_democracy, na.rm = TRUE),
+    early_par = mean(prop_in_par[year <= 2005], na.rm = TRUE),
+    late_par  = mean(prop_in_par[year >= 2010], na.rm = TRUE),
+    change_in_par = late_par - early_par,
+ .groups = "drop") |>
+  filter(
+    !is.nan(avg_prop_in_par),
+    !is.nan(early_par),
+    !is.nan(late_par),
+    !is.nan(change_in_par),
+    !is.na(pct_years_democratic))
 
-### Transitions Over Time
+global_avg_par <- mean(country_summaries$avg_prop_in_par, na.rm = TRUE)
+global_avg_dem  <- mean(country_summaries$pct_years_democratic, na.rm = TRUE)
 
-```{r}
-summary_data_long <- summary_data |>
+representative <- country_summaries |>
+  mutate(distance_from_avg = abs(avg_prop_in_par - global_avg_par) +
+                        abs(pct_years_democratic - global_avg_dem)) |>
+  arrange(distance_from_avg) |>
+  slice_head(n = 5)
+
+library(plotly)
+
+honduras_clean <- read_csv("API_HND_DS2_en_csv_v2_19376.csv", skip = 4) |>
+  select(-last_col()) |>
+  filter(!is.na(`Indicator Name`)) |>
   pivot_longer(
-    cols      = c(transitions_in, transitions_out),
-    names_to  = "type",
-    values_to = "count"
-  ) |>
-  mutate(
-    type = factor(
-      type,
-      levels = c("transitions_in", "transitions_out"),
-      labels = c("Transitions In", "Transitions Out")
-    )
-  )
+    cols = `1960`:`2025`,
+    names_to = "year",
+    values_to = "value") |>
+  mutate(year= as.integer(year),
+    value = as.numeric(value)) |>
+  filter(!is.na(value)) |>
+  rename(indicator_name = `Indicator Name`) |>
+  select(indicator_name, year, value) |>
+  pivot_wider(names_from = indicator_name,
+    values_from = value) |>
+  arrange(year)
 
-ggplot(summary_data_long, aes(x = year, y = count, fill = type)) +
-  geom_area(alpha = 0.6, position = "identity") +
-  scale_fill_manual(
-    values = c("Transitions In" = blue_mid, "Transitions Out" = pink_accent),
-    name   = "Transition Direction"
-  ) +
-  scale_y_continuous(limits = c(0, 12), breaks = seq(0, 12, 2)) +
-  scale_x_continuous(limits = c(1950, 2020), breaks = seq(1950, 2020, 10)) +
-  labs(x = "Year", y = "Count of Countries") +
-  theme(
-    panel.grid.minor = element_blank(),
-    legend.position  = "bottom",
-    axis.title       = element_text(color = blue_dark),
-    axis.text        = element_text(color = blue_dark),
-    legend.text      = element_text(color = blue_dark),
-    legend.title     = element_text(color = blue_dark)
-  )
+honduras_clean <- honduras_clean |>
+  mutate(women_population_pct = 100 - `Population, male (% of total population)`)
+
+honduras_plot <- honduras_clean |>
+  select(year,
+    women_parliament = "Proportion of seats held by women in national parliaments (%)",
+    women_population_pct) |>
+  filter(!is.na(women_parliament) | !is.na(women_population_pct))
 ```
 
-### Correlation Heatmap
+## Column {width=65%}
+
+::: {.card title="Women in Parliament vs. Female Population"}
 
 ```{r}
-cor_df_plot <- cor_df |>
-  mutate(
-    var1 = recode(var1,
-      "prop_democracy"  = "Prop. Democratic",
-      "transitions_in"  = "Transitions In",
-      "transitions_out" = "Transitions Out"),
-    var2 = recode(var2,
-      "prop_democracy"  = "Prop. Democratic",
-      "transitions_in"  = "Transitions In",
-      "transitions_out" = "Transitions Out")
-  )
-
-ggplot(cor_df_plot, aes(x = var1, y = var2, fill = correlation)) +
-  geom_tile(color = "white", linewidth = 1.2) +
-  geom_text(
-    aes(label = ifelse(var1 == var2, "1.00
-(self)", round(correlation, 2))),
-    size = 4.5, fontface = "bold", color = black
-  ) +
-  scale_fill_gradient2(
-    low      = pink_accent,
-    mid      = blue_pale,
-    high     = blue_dark,
-    midpoint = 0,
-    limits   = c(-1, 1),
-    name     = "Correlation"
-  ) +
-  labs(x = NULL, y = NULL) +
-  theme(
-    axis.text    = element_text(size = 12, color = black, face = "bold"),
-    panel.grid   = element_blank(),
-    legend.text  = element_text(color = black),
-    legend.title = element_text(color = black)
-  )
+plot_ly(honduras_plot, x = ~year) |>
+  add_lines(y = ~women_parliament,
+    name = "Women in Parliament (%)",
+    line = list(color = "#899DA4", width = 2),
+    yaxis = "y1") |>
+  add_lines(y = ~women_population_pct,
+    name = "Female Population (%)",
+    line = list(color = "#C93312", width = 2),
+    yaxis = "y2") |>
+  layout(xaxis = list(title = "Year"),
+    yaxis = list(
+      title = "Women in Parliament (%)",
+      titlefont = list(color = "#899DA4"),
+      tickfont = list(color = "#899DA4"),
+      range = list(0, 35)),
+    yaxis2 = list(title = "Female Population (%)",
+      titlefont = list(color = "#C93312"),
+      tickfont = list(color = "#C93312"),
+      overlaying = "y",
+      side = "right",
+      range = list(45, 55)),
+    legend  = list(x = 0.05, y = 0.95),
+    hovermode = "x unified",
+    margin = list(r = 60))
 ```
+
 :::
-::::
 
-## Column {width="42%"}
-
-:::::::: {.card title="Tables"}
-::::::: panel-tabset
-### Annual Transitions
+::: {.card title="Global Distribution of Female Leadership and Representation in 2020"}
 
 ```{r}
-summary_data |>
-  gt() |>
-  tab_header(
-    title    = md("**Table 4: Democracy Transitions by Year**"),
-    subtitle = "Proportion of Democracies and Transitions In and Out"
-  ) |>
-  cols_label(
-    year            = "Year",
-    prop_democracy  = "Prop. Democratic",
-    transitions_in  = "Transitions In",
-    transitions_out = "Transitions Out"
-  ) |>
-  fmt_percent(columns = prop_democracy, decimals = 1) |>
-  fmt_integer(columns = c(transitions_in, transitions_out)) |>
-  tab_style(
-    style     = cell_fill(color = blue_pale),
-    locations = list(cells_column_labels(), cells_title())
-  ) |>
-  tab_style(
-    style     = cell_text(color = blue_dark),
-    locations = list(cells_column_labels(), cells_title(), cells_body())
-  ) |>
-  tab_style(
-    style     = cell_fill(color = paste0(blue_mid, "99")),
-    locations = cells_body(columns = transitions_in,  rows = transitions_in > 0)
-  ) |>
-  tab_style(
-    style     = cell_fill(color = paste0(pink_accent, "99")),
-    locations = cells_body(columns = transitions_out, rows = transitions_out > 0)
-  ) |>
-  tab_footnote(
-    footnote  = "Blue = transitions into democracy; pink = transitions out of democracy.",
-    locations = cells_column_labels(columns = transitions_in)
-  ) |>
-  tab_options(
-    table.font.size                = px(13),
-    data_row.padding               = px(5),
-    table.background.color         = "white",
-    column_labels.background.color = blue_pale
-  ) |>
-  opt_table_font(font = google_font("Source Serif 4"))
+library(sf)
+library(leaflet)
+
+data_2020 <- democracy_data %>%
+  filter(year == 2020)
+
+world_sf <- map_data("world") %>%
+  st_as_sf(coords = c("long", "lat"), crs = 4326) %>%
+  group_by(region, group) %>%
+  summarise(geometry = st_combine(geometry), .groups = "drop") %>%
+  st_cast("POLYGON") %>%
+  group_by(region) %>%
+  summarise(geometry = st_combine(geometry)) %>%
+  st_cast("MULTIPOLYGON") %>%
+  mutate(country_name = recode(
+      region,
+      "USA" = "United States",
+      "UK" = "United Kingdom",
+      "Democratic Republic of the Congo" = "Congo, Dem. Rep.",
+      "Republic of Congo" = "Congo, Republic of",
+      "Ivory Coast" = "Côte d`Ivoire",
+      "Gambia" = "Gambia, The",
+      "North Korea" = "Korea, People's Republic",
+      "South Korea" = "Korea, Republic of",
+      "Slovakia" = "Slovak Republic",
+      "Saint Kitts and Nevis" = "St. Kitts & Nevis",
+      "Saint Lucia" = "St. Lucia",
+      "Saint Vincent and the Grenadines" = "St.Vincent & Grenadines",
+      "Trinidad and Tobago" = "Trinidad &Tobago",
+      "Micronesia" = "Micronesia, Fed. Sts.",
+      "Turks and Caicos Islands" = "Turks and Caicos")) %>%
+  left_join(data_2020, by = "country_name")
+
+marker_coords <- map_data("world") %>%
+  group_by(region) %>%
+  summarize(long = mean(range(long, na.rm = TRUE)),
+    lat  = mean(range(lat, na.rm = TRUE)))
+
+female_leaders <- world_sf %>%
+  filter(is_female_president | is_female_monarch) %>%
+  mutate(leader_type = case_when(
+      is_female_president & is_female_monarch ~ "Both",
+      is_female_president ~ "President",
+      is_female_monarch ~ "Monarch")) %>%
+  left_join(marker_coords, by = "region")
+
+pinks <- colorNumeric("RdPu",
+  domain = world_sf$prop_in_par,
+  na.color = "#cccccc")
+
+marker_pal <- colorFactor(
+  palette = c("President" = blue_dark, "Monarch" = blue_pale),
+  domain = female_leaders$leader_type)
+
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addPolygons(data = world_sf,
+    fillColor = ~pinks(prop_in_par), fillOpacity = 1,
+    color = "#555555", weight = 0.5,
+    label = ~paste0(region, " ",
+    "Women in parliament: ", round(prop_in_par, 1), "% ",
+    "Democracy: ", ifelse(is_democracy, "Yes", "No"))) %>%
+  addCircleMarkers(
+    data = female_leaders,
+    lng = ~long, lat = ~lat,
+    radius = 6, stroke = TRUE,
+    weight = 1, color = "#222222",
+    fillColor = ~marker_pal(leader_type), fillOpacity = 0.9,
+    label = ~paste(region, "-", leader_type)) %>%
+  addLegend(pal = pinks, values = ~prop_in_par, data = world_sf,
+    title = "Percentage of Women in Parliament",
+    position = "bottomright",
+    labFormat = labelFormat(suffix = "%")) %>%
+  addLegend(position = "topright", pal = marker_pal, values = female_leaders$leader_type, title = "Female Head of State")
 ```
 
-::: {.card style="background-color: #f7fbff; border: 1px solid #bdd4e7; padding: 1rem; margin-top: 1rem;"}
-Transitions into democracy peaked sharply in the early 1990s following the end of the Cold War, while transitions out have persisted throughout every decade. Year-to-year fluctuations in transitions do not closely track the overall global proportion of democracies.
 :::
 
-### By Decade
+## Column {width=35%}
 
-```{r}
-summary_ten_yrs |>
-  gt() |>
-  tab_header(
-    title    = md("**Table 5: Democracy Transitions by Decade**"),
-    subtitle = "Aggregated Transitions and Proportion Democratic"
-  ) |>
-  cols_label(
-    ten_yrs         = "Decade Start",
-    prop_democracy  = "Prop. Democratic",
-    transitions_in  = "Transitions In",
-    transitions_out = "Transitions Out"
-  ) |>
-  fmt_percent(columns = prop_democracy, decimals = 1) |>
-  fmt_integer(columns = c(ten_yrs, transitions_in, transitions_out)) |>
-  tab_style(
-    style     = cell_fill(color = blue_pale),
-    locations = list(cells_column_labels(), cells_title())
-  ) |>
-  tab_style(
-    style     = cell_text(color = blue_dark),
-    locations = list(cells_column_labels(), cells_title(), cells_body())
-  ) |>
-  tab_style(
-    style     = cell_fill(color = paste0(blue_mid, "99")),
-    locations = cells_body(columns = transitions_in,  rows = transitions_in > 0)
-  ) |>
-  tab_style(
-    style     = cell_fill(color = paste0(pink_accent, "99")),
-    locations = cells_body(columns = transitions_out, rows = transitions_out > 0)
-  ) |>
-  tab_footnote(
-    footnote  = "Blue = transitions into democracy; pink = transitions out. The 1990s saw the largest wave of democratization.",
-    locations = cells_column_labels(columns = transitions_in)
-  ) |>
-  tab_options(
-    table.font.size                = px(13),
-    data_row.padding               = px(5),
-    table.background.color         = "white",
-    column_labels.background.color = blue_pale
-  ) |>
-  opt_table_font(font = google_font("Source Serif 4"))
-```
+::: {.card title="Honduras as a Representative Case"}
 
-::: {.card style="background-color: #f7fbff; border: 1px solid #bdd4e7; padding: 1rem; margin-top: 1rem;"}
-The 1990s stand out as the most transformative decade, with 39 transitions into democracy and only 11 out, reflecting the post-Cold War wave. The 1970s were the most stagnant period, with transitions in and out nearly balanced and virtually no net change in the global proportion.
+Honduras had 6 transitions in and out  of democracy. The difference from the average proportion of women in parliament from before 2005 and after 2020 was 0.5212923, which is pretty close to the average as well. So, it both represents the global trend for women in parliament pretty well, but acts as an outlier for the number of transitions in and out of democracy.
+
+We found data about Honduras through the World Bank database, which includes data about over 1,300 categories about Honduras, including information about population breakdowns, social issues, climate change, and economic-related things. The data was collected from 1960–2025, and we cleaned it to have each row represent one year.
+
 :::
 
-### Top Countries (1950–2020)
+::: {.card title="Women in Parliament Trends"}
 
-```{r}
-topn_countries(1950, 2020, 10) |>
-  gt() |>
-  tab_header(
-    title    = md("**Table 6: Top 10 Countries by Democratic Transitions**"),
-    subtitle = "Total Transitions Into and Out of Democracy, 1950–2020"
-  ) |>
-  cols_label(
-    country_name      = "Country",
-    transitions_in    = "Transitions In",
-    transitions_out   = "Transitions Out",
-    total_transitions = "Total Transitions"
-  ) |>
-  fmt_integer(columns = c(transitions_in, transitions_out, total_transitions)) |>
-  tab_style(
-    style     = cell_fill(color = blue_pale),
-    locations = list(cells_column_labels(), cells_title())
-  ) |>
-  tab_style(
-    style     = cell_text(color = blue_dark),
-    locations = list(cells_column_labels(), cells_title(), cells_body())
-  ) |>
-  tab_style(
-    style     = cell_fill(color = paste0(blue_mid, "99")),
-    locations = cells_body(columns = transitions_in,  rows = transitions_in > 0)
-  ) |>
-  tab_style(
-    style     = cell_fill(color = paste0(pink_accent, "99")),
-    locations = cells_body(columns = transitions_out, rows = transitions_out > 0)
-  ) |>
-  tab_options(
-    table.font.size                = px(13),
-    data_row.padding               = px(5),
-    table.background.color         = "white",
-    column_labels.background.color = blue_pale
-  ) |>
-  opt_table_font(font = google_font("Source Serif 4"))
-```
+The female population in Honduras remains relatively constant over time. However, the percentage of women in parliament fluctuates throughout the years. In 1997, only about 9% of seats in parliament were occupied by women, and in 2002, this percentage dropped to around 5.5%. 2005 saw a significant increase of 23% in the percentage of women in parliament. This percentage has varied since then, however the percentage of women in parliament seems to be on the rise, with almost 30% of seats being held by women in 2025. 
 
-::: {.card style="background-color: #f7fbff; border: 1px solid #bdd4e7; padding: 1rem; margin-top: 1rem;"}
-Argentina and Thailand experienced the most democratic transitions between 1950 and 2020, followed by Ghana, Pakistan, and Peru. Repeated regime shifts reflect political instability — democratization is not a steady or linear process.
 :::
 
-### Top Countries (1980–2010)
+::: {.card title="Global Trends"}
 
-```{r}
-topn_countries(1980, 2010, 10) |>
-  gt() |>
-  tab_header(
-    title    = md("**Table 7: Top 10 Countries by Democratic Transitions**"),
-    subtitle = "Total Transitions Into and Out of Democracy, 1980–2010"
-  ) |>
-  cols_label(
-    country_name      = "Country",
-    transitions_in    = "Transitions In",
-    transitions_out   = "Transitions Out",
-    total_transitions = "Total Transitions"
-  ) |>
-  fmt_integer(columns = c(transitions_in, transitions_out, total_transitions)) |>
-  tab_style(
-    style     = cell_fill(color = blue_pale),
-    locations = list(cells_column_labels(), cells_title())
-  ) |>
-  tab_style(
-    style     = cell_text(color = blue_dark),
-    locations = list(cells_column_labels(), cells_title(), cells_body())
-  ) |>
-  tab_style(
-    style     = cell_fill(color = paste0(blue_mid, "99")),
-    locations = cells_body(columns = transitions_in,  rows = transitions_in > 0)
-  ) |>
-  tab_style(
-    style     = cell_fill(color = paste0(pink_accent, "99")),
-    locations = cells_body(columns = transitions_out, rows = transitions_out > 0)
-  ) |>
-  tab_options(
-    table.font.size                = px(13),
-    data_row.padding               = px(5),
-    table.background.color         = "white",
-    column_labels.background.color = blue_pale
-  ) |>
-  opt_table_font(font = google_font("Source Serif 4"))
-```
+South America has a large concentration of female leaders. There are also a few European, African, and Asian countries with either female monarchs or presidents. Generally, it seems that smaller territories and countries, such as the Cayman Islands and Nepal, have female leaders more than larger countries. The map also reveals that countries with female leaders don't necessarily have a large proportion of women in parliament. For example, Liberia, South Korea, and Greece are some countries who once had female leaders, but have low proportions of women in parliament.
 
-::: {.card style="background-color: #f7fbff; border: 1px solid #bdd4e7; padding: 1rem; margin-top: 1rem;"}
-Even four or fewer transitions per country can indicate meaningful political instability. A key takeaway is that democratization requires not only becoming democratic, but sustaining democratic rule over time.
 :::
-:::::::
-::::::::
 
 # Conclusion
 
@@ -733,133 +541,3 @@ Our analysis of democratic transitions also showed that global democratization h
 Taken together, these findings show that becoming a democratic country can be associated with greater gender representation and broader political change, but maintaining democratic rule and achieving gender equality remain ongoing challenges. Democracy may create more opportunities for representation, but the persistence of gender gaps and repeated regime transitions show that political progress is not automatic or permanent.
 :::
 
-```{r}
-country_summaries <- democracy_data |>
-  arrange(country, year, country_name) |>
-  group_by(country) |>
-  summarize(
-    country_name         = first(country_name),
-    avg_prop_in_par      = mean(prop_in_par, na.rm = TRUE),
-    pct_years_democratic = mean(is_democracy, na.rm = TRUE),
-    total_transitions    = sum(to_democracy + from_democracy, na.rm = TRUE),
-    # difference between first and last 5 years
-    early_par = mean(prop_in_par[year <= 2005], na.rm = TRUE),
-    late_par  = mean(prop_in_par[year >= 2010], na.rm = TRUE),
-    change_in_par = late_par - early_par,
-    .groups = "drop",
-  ) |>
-   filter(
-    !is.nan(avg_prop_in_par),
-    !is.nan(early_par),
-    !is.nan(late_par),
-    !is.nan(change_in_par),
-    !is.na(pct_years_democratic)
-  )
-
-# outliers, looking at proportion of parliamentary represention
-outlier_high <- country_summaries |>
-  arrange(desc(avg_prop_in_par)) |>
-  slice_head(n = 5)
-
-outlier_low <- country_summaries |>
-  filter(avg_prop_in_par > 0) |>
-  arrange(avg_prop_in_par) |>
-  slice_head(n = 5)
-
-# finding the representative cases
-global_avg_par  <- mean(country_summaries$avg_prop_in_par, na.rm = TRUE)
-global_avg_dem  <- mean(country_summaries$pct_years_democratic, na.rm = TRUE)
-
-representative <- country_summaries |>
-  mutate(
-    distance_from_avg = abs(avg_prop_in_par - global_avg_par) +
-                        abs(pct_years_democratic - global_avg_dem)
-  ) |>
-  arrange(distance_from_avg) |>
-  slice_head(n = 5)
-```
-
-Honduras seems pretty interesting, out of the representative dataset. It had 6 transitions, both from and into democracy. The distance from the average difference in proportion of women in parliament from before 2005 and after 2020 was 0.5212923, which is pretty close to the average as well. So, it both represents the global trend for women in parliament pretty well, but acts as an outlier for the number of transitions from and to democracy.
-
-We found data about Honduras through the World Bank Dataset, which includes data about over 1,300 categories about Honduras, including things about population breakdowns, social issues, climate change, and economic-related things. The data was collected from 1960-2025, and we cleaned it up to have each row represent one year. (https://data.worldbank.org/country/honduras)
-
-```{r}
-
-
-
-honduras_clean <- read_csv("API_HND_DS2_en_csv_v2_19376.csv", skip = 4) |>
-  select(-last_col()) |>
-  filter(!is.na(`Indicator Name`)) |>
-  pivot_longer(
-    cols = `1960`:`2025`,
-    names_to = "year",
-    values_to = "value"
-  ) |>
-  mutate(
-    year  = as.integer(year),
-    value = as.numeric(value)
-  ) |>
-  filter(!is.na(value)) |>
-  rename(
-    indicator_name = `Indicator Name`
-  ) |>
-  select(indicator_name, year, value) |>
-  pivot_wider(
-    names_from  = indicator_name,
-    values_from = value
-  ) |>
-  arrange(year)
-
-```
-
-```{r}
-library(plotly)
-
-honduras_clean <- honduras_clean |>
-  mutate(
-    women_population_pct = 100 - `Population, male (% of total population)`
-  )
-
-honduras_plot <- honduras_clean |>
-  select(
-    year,
-    women_parliament = "Proportion of seats held by women in national parliaments (%)",
-    women_population_pct
-  ) |>
-  filter(!is.na(women_parliament) | !is.na(women_population_pct))
-
-plot_ly(honduras_plot, x = ~year) |>
-  add_lines(
-    y = ~women_parliament,
-    name = "Women in Parliament (%)",
-    line = list(color = "#899DA4", width = 2),
-    yaxis = "y1"
-  ) |>
-  add_lines(
-    y = ~women_population_pct,
-    name = "Female Population (%)",
-    line = list(color = "#C93312", width = 2),
-    yaxis = "y2"
-  ) |>
-  layout(
-    title = list(
-      text = "Women in Parliament vs Female Population in Honduras Over Time",
-      font = list(size = 14)
-    ),
-    xaxis = list(title = "Year"),
-    yaxis = list(
-      title     = "Women in Parliament (%)",
-      titlefont = list(color = "#899DA4"),
-      tickfont  = list(color = "#899DA4")
-    ),
-    yaxis2 = list(
-      title      = "Female Population (%)",
-      titlefont  = list(color = "#C93312"),
-      tickfont   = list(color = "#C93312"),
-      overlaying = "y",
-      side       = "right"
-    ),
-    legend    = list(x = 0.1, y = 0.9),
-    hovermode = "x unified"
-  )
-```
