@@ -1,0 +1,317 @@
+---
+title: "Democracy & Gender in Leadership"
+format:
+  dashboard:
+    orientation: columns
+    theme: flatly
+    css: dashboard-styles.css
+    logo: logo.png
+    logo-alt: "Democracy and Gender in Leadership project logo."
+embed-resources: true
+nav-buttons:
+  - icon: github
+    href: https://github.com/BryceCorbett/Geopolitical-Analysis
+    aria-label: GitHub
+  - icon: linkedin
+    href: https://www.linkedin.com
+    aria-label: LinkedIn
+  - icon: instagram
+    href: https://www.instagram.com
+    aria-label: Instagram
+  - icon: envelope
+    href: mailto:yourteam@email.com
+    aria-label: Email
+---
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+options(pillar.width = Inf)
+library(tidyverse)
+library(wesanderson)
+library(gt)
+library(broom)
+
+democracy_data <- read.csv("Combined_Democracy_Data.csv")
+
+democracy_data <- democracy_data |>
+  mutate(
+    president_age_at_accession = president_accesion_year - president_birthyear,
+    monarch_age_at_accession   = monarch_accession_year - monarch_birthyear,
+    has_female_leader = ifelse(is_female_president | is_female_monarch, 1, 0),
+    decade = ifelse(year < 1960, "1950-1959",
+             ifelse(year < 1970, "1960-1969",
+             ifelse(year < 1980, "1970-1979",
+             ifelse(year < 1990, "1980-1989",
+             ifelse(year < 2000, "1990-1999",
+             ifelse(year < 2010, "2000-2009",
+                                 "2010-2020"))))))
+  )
+
+summarise_leadership_gender_gap <- function(group_var) {
+  democracy_data |>
+    filter(!is.na(democracy_data[[group_var]])) |>
+    group_by(across(all_of(group_var))) |>
+    summarise(
+      n = n(),
+      prop_female_president = mean(ifelse(!is_monarchy, is_female_president, NA), na.rm = TRUE),
+      prop_male_president   = mean(ifelse(!is_monarchy, !is_female_president, NA), na.rm = TRUE),
+      gap_president_prop    = prop_male_president - prop_female_president,
+      avg_accession_age_female_president = mean(president_age_at_accession[is_presidential & is_female_president], na.rm = TRUE),
+      avg_accession_age_male_president   = mean(president_age_at_accession[is_presidential & !is_female_president], na.rm = TRUE),
+      gap_president_accession_age = avg_accession_age_male_president - avg_accession_age_female_president,
+      prop_female_monarch = mean(ifelse(is_monarchy, is_female_monarch, NA), na.rm = TRUE),
+      prop_male_monarch   = mean(ifelse(is_monarchy, !is_female_monarch, NA), na.rm = TRUE),
+      gap_monarch_prop    = prop_male_monarch - prop_female_monarch,
+      avg_accession_age_female_monarch = mean(monarch_age_at_accession[is_monarchy & is_female_monarch], na.rm = TRUE),
+      avg_accession_age_male_monarch   = mean(monarch_age_at_accession[is_monarchy & !is_female_monarch], na.rm = TRUE),
+      gap_monarch_accession_age = avg_accession_age_male_monarch - avg_accession_age_female_monarch,
+      .groups = "drop"
+    )
+}
+
+plotMe    <- summarise_leadership_gender_gap("year")
+pal       <- wes_palette("Moonrise3")
+
+blue_dark   <- "#5b8db8"
+blue_mid    <- "#89afd4"
+blue_light  <- "#bdd4e7"
+blue_pale   <- "#ddeaf5"
+pink_accent <- "#e8a0b0"
+pink_pale   <- "#f5d5dc"
+
+theme_set(theme_minimal(base_size = 13, base_family = "Georgia"))
+```
+
+## Column {width=58%}
+
+::: {.card title="Visualizations"}
+::: {.panel-tabset .tabset-sync}
+## Women in Parliament
+
+```{r}
+#| fig-height: 5.2
+democracy_data |>
+  filter(!is.na(is_democracy), !is.na(prop_in_par)) |>
+  mutate(is_democracy = factor(is_democracy, labels = c("Non-Democracy", "Democracy"))) |>
+  ggplot(aes(x = is_democracy, y = prop_in_par)) +
+  geom_boxplot(
+    fill          = c(blue_light, blue_dark),
+    color         = blue_dark,
+    outlier.color = blue_mid
+  ) +
+  stat_summary(
+    fun      = mean,
+    geom     = "crossbar",
+    color    = blue_dark,
+    width    = 0.75,
+    linetype = "dotted",
+    linewidth = 0.3
+  ) +
+  stat_summary(
+    fun   = mean,
+    geom  = "text",
+    aes(label = paste0("Mean: ", round(after_stat(y), 1), "%")),
+    vjust = -1,
+    color = "white",
+    size  = 3.5
+  ) +
+  stat_summary(
+    fun   = median,
+    geom  = "text",
+    aes(label = paste0("Median: ", round(after_stat(y), 1), "%")),
+    vjust = 1.5,
+    color = "white",
+    size  = 3.5
+  ) +
+  scale_y_continuous(labels = scales::label_percent(scale = 1)) +
+  labs(x = "Democracy Status", y = "% of Parliament Seats Held by Women") +
+  theme(
+    panel.grid.minor = element_blank(),
+    axis.title       = element_text(color = blue_dark),
+    axis.text        = element_text(color = blue_dark)
+  )
+```
+
+## Accession Ages Over Time
+
+No female presidents were recorded before 1980, so this plot begins there.
+
+```{r}
+#| fig-height: 5.2
+#| warning: false
+plotMe |>
+  filter(year >= 1980) |>
+  ggplot(aes(x = year)) +
+  geom_ribbon(
+    aes(ymin = avg_accession_age_female_president, ymax = avg_accession_age_male_president),
+    fill = blue_pale, alpha = 0.8
+  ) +
+  geom_ribbon(
+    aes(ymin = avg_accession_age_female_monarch, ymax = avg_accession_age_male_monarch),
+    fill = pink_pale, alpha = 0.8
+  ) +
+  geom_line(aes(y = avg_accession_age_female_president, color = "Female President"), linewidth = 1.4) +
+  geom_line(aes(y = avg_accession_age_male_president,   color = "Male President"),   linewidth = 1.4) +
+  geom_line(aes(y = avg_accession_age_female_monarch,   color = "Female Monarch"),   linewidth = 1.4) +
+  geom_line(aes(y = avg_accession_age_male_monarch,     color = "Male Monarch"),     linewidth = 1.4) +
+  scale_color_manual(
+    name   = "Leader Type",
+    values = c(
+      "Female President" = pink_accent,
+      "Male President"   = blue_dark,
+      "Female Monarch"   = pink_accent,
+      "Male Monarch"     = blue_mid
+    ),
+    breaks = c("Female President", "Male President", "Female Monarch", "Male Monarch")
+  ) +
+  scale_x_continuous(limits = c(1980, 2020)) +
+  scale_y_continuous(limits = c(20, 70)) +
+  labs(x = "Year", y = "Average Accession Age", color = "Leader Type") +
+  theme(
+    panel.grid.minor  = element_blank(),
+    legend.position   = "bottom",
+    legend.direction  = "horizontal",
+    legend.background = element_rect(fill = "white", color = blue_light),
+    legend.text       = element_text(size = 9, color = blue_dark),
+    legend.title      = element_text(size = 9, color = blue_dark),
+    axis.title        = element_text(color = blue_dark),
+    axis.text         = element_text(color = blue_dark)
+  )
+```
+
+:::
+:::
+
+## Column {width=42%}
+
+::: {.card title="Tables"}
+::: {.panel-tabset .tabset-sync}
+## Women in Parliament
+
+```{r}
+result       <- t.test(prop_in_par ~ is_democracy, data = democracy_data)
+table_result <- tidy(result)
+
+table_result |>
+  select(estimate1, estimate2, statistic, p.value, conf.low, conf.high, parameter) |>
+  gt() |>
+  tab_header(
+    title    = md("**Welch Two-Sample t-Test**"),
+    subtitle = "Proportion of Seats Held by Women"
+  ) |>
+  cols_label(
+    estimate1 = md("Mean<br>(Non-Dem.)"),
+    estimate2 = md("Mean<br>(Dem.)"),
+    statistic = md("*t*"),
+    p.value   = md("*p*-value"),
+    conf.low  = "CI Low",
+    conf.high = "CI High",
+    parameter = md("*df*")
+  ) |>
+  fmt_number(columns  = c(estimate1, estimate2, statistic, conf.low, conf.high), decimals = 3) |>
+  fmt_number(columns  = parameter, decimals = 1) |>
+  fmt_scientific(columns = p.value, decimals = 3) |>
+  tab_style(
+    style     = list(cell_fill(color = pink_pale), cell_text(weight = "bold", color = blue_dark)),
+    locations = cells_body(columns = p.value)
+  ) |>
+  tab_style(
+    style     = cell_fill(color = blue_pale),
+    locations = list(cells_column_spanners(), cells_column_labels(), cells_title())
+  ) |>
+  tab_style(
+    style     = cell_text(color = blue_dark),
+    locations = list(cells_column_labels(), cells_title(), cells_body())
+  ) |>
+  tab_footnote(
+    footnote  = "Highlighted p-value is statistically significant (p < 0.05).",
+    locations = cells_column_labels(columns = p.value)
+  ) |>
+  tab_options(
+    table.font.size                = px(13),
+    data_row.padding               = px(5),
+    table.background.color         = "white",
+    column_labels.background.color = blue_pale
+  ) |>
+  opt_table_font(font = google_font("Source Serif 4"))
+```
+
+::: {.card style="background-color: #f7fbff; border: 1px solid #bdd4e7; padding: 1rem; margin-top: 1rem;"}
+On average, democracies have slightly higher women's parliamentary representation — a mean of **17.7%** versus **16.0%** in non-democracies. While the difference appears small, the t-test confirms it is statistically significant (p < 0.001). Both groups show wide variation, and a handful of non-democratic countries exceed 60% representation.
+:::
+
+## Accession Ages Over Time
+
+```{r}
+summarise_leadership_gender_gap("is_democracy") |>
+  mutate(is_democracy = ifelse(is_democracy, "Democracy", "Non-Democracy")) |>
+  select(is_democracy, n,
+         avg_accession_age_female_president, avg_accession_age_male_president, gap_president_accession_age,
+         avg_accession_age_female_monarch,   avg_accession_age_male_monarch,   gap_monarch_accession_age) |>
+  gt() |>
+  tab_header(
+    title    = md("**Gender Gaps in Accession Age**"),
+    subtitle = "Average Age When Leaders First Take Office"
+  ) |>
+  tab_spanner(label = "Presidents",
+    columns = c(avg_accession_age_female_president, avg_accession_age_male_president, gap_president_accession_age)) |>
+  tab_spanner(label = "Monarchs",
+    columns = c(avg_accession_age_female_monarch, avg_accession_age_male_monarch, gap_monarch_accession_age)) |>
+  cols_label(
+    is_democracy                       = "Status",
+    n                                  = "N",
+    avg_accession_age_female_president = "Female",
+    avg_accession_age_male_president   = "Male",
+    gap_president_accession_age        = "Gap (M−F)",
+    avg_accession_age_female_monarch   = "Female",
+    avg_accession_age_male_monarch     = "Male",
+    gap_monarch_accession_age          = "Gap (M−F)"
+  ) |>
+  fmt_number(columns = c(avg_accession_age_female_president, avg_accession_age_male_president,
+                          gap_president_accession_age, avg_accession_age_female_monarch,
+                          avg_accession_age_male_monarch, gap_monarch_accession_age),
+             decimals = 1) |>
+  fmt_integer(columns = n) |>
+  tab_style(
+    style     = cell_fill(color = blue_pale),
+    locations = list(cells_column_spanners(), cells_column_labels(), cells_title())
+  ) |>
+  tab_style(
+    style     = cell_text(color = blue_dark),
+    locations = list(cells_column_labels(), cells_title(), cells_body())
+  ) |>
+  tab_style(
+    style     = cell_fill(color = pink_pale),
+    locations = cells_body(
+      columns = c(gap_president_accession_age, gap_monarch_accession_age),
+      rows    = gap_president_accession_age > 0
+    )
+  ) |>
+  tab_style(
+    style     = cell_fill(color = blue_light),
+    locations = cells_body(
+      columns = c(gap_president_accession_age, gap_monarch_accession_age),
+      rows    = gap_president_accession_age < 0
+    )
+  ) |>
+  tab_footnote(
+    footnote  = "Blue = males higher; pink = females higher.",
+    locations = cells_column_labels(columns = c(gap_president_accession_age, gap_monarch_accession_age))
+  ) |>
+  tab_options(
+    table.font.size                = px(13),
+    data_row.padding               = px(5),
+    table.background.color         = "white",
+    column_labels.background.color = blue_pale
+  ) |>
+  opt_table_font(font = google_font("Source Serif 4"))
+```
+
+::: {.card style="background-color: #f7fbff; border: 1px solid #bdd4e7; padding: 1rem; margin-top: 1rem;"}
+In non-democratic countries, female presidents take office nearly **14 years older** than male presidents on average. In democracies, that gap shrinks to under 3 years. For monarchs, the pattern reverses — female monarchs tend to ascend younger, and the gap has been growing since 2000.
+:::
+
+:::
+:::

@@ -1,7 +1,8 @@
 ---
 title: "The Democracy Gap"
+subtitle: "Analyzing Gender Representation & Regime Changes in Democratic Countries"
 author: "Julia Aptekar, Meghana Kolar, Sofia Jachno, & Bryce Corbett"
-embedded-resources: true
+embed-resources: true
 code-fold: true
 format: html
 theme: lux
@@ -21,13 +22,23 @@ democracy_data <- read.csv("Combined_Democracy_Data.csv")
 pal <- wes_palette("Moonrise3", n = 5)
 ```
 
-## Explore the data
+Democracy is usually associated with participation, elections, and political rights, but that does not mean political power is shared equally. A country can hold elections, expand voting rights, and allow leadership changes, yet women can still be  underrepresented in government. Women remain underrepresented in many national parliaments and executive offices, even in countries that meet basic democratic standards.
 
-Our study utilized two datasets. The first was compiled by Christian Bjørnskov and Martin Rode, two economists who study political institutions and how governments change over time. Their goal was to create a resource for researchers studying political transitions, an area they felt had not been adequately covered by existing data. The dataset collects information on 192 sovereign countries and 16 self-governing territories annually from 1950 to 2020 on each country's regime type, democratic status, elections, leadership, suffrage, transfers of power, and colonial history. In total, it includes 14,768 country-year observations across 43 variables.
+Democracy itself can also shift over time. Some countries remain democratic or non-democratic for decades, while others move between the two after coups, elections, leadership changes, or broader political crises. Because of that, the global rise of democracy is not just a story of more countries becoming democratic. It is also a story of reversals, repeated transitions, and uneven political change.
 
-To build this dataset, the authors expanded on an existing collection of political data by recording key features of each country's government, such as whether elections took place, whether those elections were considered free and fair, and whether leadership changed hands peacefully. Records of coups were verified across newspaper archives, encyclopedias, and other databases to ensure accuracy. For our analysis, this dataset is especially useful because it gives us a reliable way to classify each country as democratic or not for any given year, while also providing the broader political context needed to understand how and why governments change over time.
+## What We Want To Know
 
-The second dataset comes from the World Bank, which tracks global progress on the UN's 17 Sustainable Development Goals, a set of goals aimed at making the world more equitable and sustainable across areas like poverty, education, and gender equality. The 5th goal focuses specifically on gender equality, and one of its key indicators is the percentage of parliamentary seats held by women in each country. This figure is compiled by the World Bank using data from the Inter-Parliamentary Union, an organization that collects official seat counts directly from legislative bodies around the world. It is available annually for most countries from 1997 to 2020, with coverage becoming more consistent in the later years of that range.
+We analyzed democracy from two angles. The first is whether democratic context is associated with gender gaps in parliamentary representation and executive leadership. The second is how transitions into and out of democracy have changed the global proportion of democratic regimes over time.
+
+## Exploring the data
+
+To answer these questions, we used two datasets on regime type, political leadership, and women’s representation in national parliaments. These sources made it possible to compare democratic and non-democratic countries while also tracking how democracy status changes over time.
+
+The first dataset was compiled by Christian Bjørnskov and Martin Rode, two economists who study political institutions and how governments change over time. Their goal was to create a resource for researchers studying political transitions. The dataset contains information on 192 sovereign countries and 16 self-governing territories collected annually from 1950 to 2020 on each country's regime type, democratic status, elections, suffrage, transfers of power, and more. 
+
+To build this dataset, the authors expanded on an existing collection of political data by recording key features of each country's government, such as whether elections took place, whether those elections were considered free and fair, and whether leadership changed hands peacefully. Records of coups were verified across newspaper archives, encyclopedias, and other databases to ensure accuracy. 
+
+Our second dataset comes from the World Bank, which tracks global progress on the UN's 17 Sustainable Development Goals, a set of goals aimed at making the world more equitable and sustainable across areas like poverty, education, and gender equality. The 5th goal focuses specifically on gender equality, and one of its key indicators is the percentage of parliamentary seats held by women in each country. This figure is compiled by the World Bank using data from the Inter-Parliamentary Union, an organization that collects official seat counts directly from legislative bodies around the world. It is available annually for most countries from 1997 to 2020, with coverage becoming more consistent in the later years of that range.
 
 **Read more about the data here:**
 
@@ -35,12 +46,13 @@ The second dataset comes from the World Bank, which tracks global progress on th
 
 [World Bank Data](https://databank.worldbank.org/source/sustainable-development-goals-(sdgs)#)
 
-## What We Want To Know
-
-1. How does the democratic context of a country shape gender gaps in parliamentary representation and executive leadership over time?
-2. How do democratic transitions within countries contribute to changes in the global proportion of democratic regimes over time?
+Together, these datasets let us connect democracy status to both representation within government and movement between political systems over time.
 
 ## Exploring Gender Gaps in Leadership and Representation
+
+Democracy status gives one way to compare gender representation across countries. Since democracies are associated with voting rights, elections, and political participation, the question is whether those features also show up in who holds political power. Women’s representation in national parliaments gives one view of that gap, while presidents and monarchs show gender differences at the highest levels of leadership.
+
+These measures capture different parts of political power. Parliament reflects representation within national lawmaking bodies, while executive leadership shows who reaches the top positions in government. Looking at both helps show whether democracy status is connected to broader representation, executive leadership, or both.
 
 ```{r}
 #| warning: false
@@ -48,13 +60,13 @@ democracy_data <- democracy_data |>
   mutate(president_age_at_accession = president_accesion_year - president_birthyear,
     monarch_age_at_accession = monarch_accession_year - monarch_birthyear,
     has_female_leader = ifelse(is_female_president | is_female_monarch, 1, 0),
-    decade = ifelse(year < 1960, "1950-1959",
-       ifelse(year < 1970, "1960-1969",
-       ifelse(year < 1980, "1970-1979",
-       ifelse(year < 1990, "1980-1989",
-       ifelse(year < 2000, "1990-1999",
-       ifelse(year < 2010, "2000-2009",
-                           "2010-2020")))))))
+    decade = ifelse(year < 1960, "1950s",
+       ifelse(year < 1970, "1960s",
+       ifelse(year < 1980, "1970s",
+       ifelse(year < 1990, "1980s",
+       ifelse(year < 2000, "1990s",
+       ifelse(year < 2010, "2000s",
+                           "2010s")))))))
 
 summarise_leadership_gender_gap <- function(group_var) {
   democracy_data |> 
@@ -98,6 +110,8 @@ summarise_leadership_gender_gap <- function(group_var) {
 plotMe <- summarise_leadership_gender_gap("year")
 ```
 
+We began by comparing the percentages of parliamentary seats held by women in democratic and non-democratic countries. 
+
 ```{r}
 #| fig-alt: This is a boxplot depicting the proportion of women in parliament, while faceting on the democracy status of the country. The mean proportion of women holding seats in non-democratic countries is 0.16 and 0.177 for democratic countries. The median proportion of women holding seats in non-democratic countries is 0.14 and 0.158 for democratic countries.
 
@@ -116,7 +130,7 @@ democracy_data %>%
     color = "black",
     width = 0.75,
     linetype = "dotted",
-    size = .2) +
+    linewidth = .2) +
   stat_summary(fun = mean,
     geom = "text",
     aes(label = paste0("Mean: ", round(after_stat(y), 1),"%")),
@@ -136,36 +150,77 @@ democracy_data %>%
   theme_minimal()
 ```
 
-We began by looking at the percentages of women's parliamentary seats in democratic and non-democratic countries. On average, democracies tend to have slightly higher representation, with a median of 15.8% compared to 14.0% in non-democratic countries, and a mean of 17.7% versus 16.0%. That said, the two groups look fairly similar overall, with a lot of overlap between them and wide variation within each group. Non-democratic countries do show a few unusually high values, including two countries where women held more than 60% of parliamentary seats.
+On average, democracies tend to have slightly higher percentages of women in parliament, with a median of 15.8% compared to 14.0% in non-democratic countries, and a mean of 17.7% versus 16.0%. That said, the two groups look fairly similar overall, with significant overlap between them and wide variation within each group. Non-democratic countries do show a few unusually high values, including two countries where women held more than 60% of parliamentary seats.
 
-To get a closer look at how democracy status relates to gender gaps beyond parliament, we examined how the proportions of male and female presidents and monarchs and the ages at which they take power differ between democratic and non-democratic countries.
+Because the boxplot showed a small difference between democracies and non-democracies, we used a Welch two-sample t-test to check whether the difference in average women’s parliamentary representation was statistically significant.
 
 ```{r}
-# Table 1: Proportions
+result <- t.test(prop_in_par ~ is_democracy, data = democracy_data)
+table_result <- tidy(result)
+
+table_result |>
+  select(estimate1, estimate2, statistic, p.value, conf.low, conf.high, parameter) |>
+  gt() |>
+  tab_header(title = md("**Proportion in Parliament by Democracy Status**"), subtitle = "Welch Two-Sample t-Test") |>
+  cols_label(estimate1 = md("Mean<br>(Non-Democracy)"),
+    estimate2 = md("Mean<br>(Democracy)"),
+    statistic = md("*t*-statistic"),
+    p.value = md("*p*-value"),
+    conf.low = "Lower Bound",
+    conf.high = "Upper Bound",
+    parameter = md("*df*")) |>
+  fmt_number(columns  = c(estimate1, estimate2, statistic, conf.low, conf.high),decimals = 3) |>
+  fmt_number(columns  = parameter,
+    decimals = 1) |>
+  fmt_scientific(columns = p.value,
+    decimals = 3) |>
+  cols_align(align = "center",
+    columns = everything()) |>
+  tab_style(style = cell_fill(color = "#FAD77B"),
+    locations = cells_body(columns = p.value)) |>
+  tab_style(style = cell_text(weight = "bold"),
+    locations = cells_body(columns = p.value)) |>
+  tab_spanner(label = "Group Means",
+    columns = c(estimate1, estimate2)) |>
+  tab_spanner(label = "Confidence Interval",
+    columns = c(conf.low, conf.high)) |>
+  tab_footnote(footnote = "Highlighted cell indicates a statistically significant result.", locations = cells_column_labels(columns = p.value)) |>
+  tab_style(style = cell_fill(color = "#D3D3D3"),
+    locations = cells_title()) |>
+  tab_style(style = cell_fill(color = "#D3D3D3"),
+    locations = cells_column_labels()) |>
+  tab_style(style = cell_fill(color = "#D3D3D3"),
+    locations = cells_column_spanners()) |>
+  opt_table_font(font = google_font("Source Serif 4"))
+```
+
+The t-statistic is -4.591 and the p-value is very small. Also, the confidence interval does not include zero, so we reject the null hypothesis and conclude that there is a statistically significant difference in the mean proportion of seats held by women between democratic and non-democratic countries. The result suggests that democracies and non-democracies differ in average women’s parliamentary representation, although the size of the difference is modest.
+
+To better see how democracy status relates to gender gaps in executive leadership, we compared the proportions of male and female presidents and monarchs in democratic and non-democratic countries.
+
+```{r}
 summarise_leadership_gender_gap("is_democracy") |>
   mutate(is_democracy = ifelse(is_democracy, "Democracy", "Non-Democracy")) |>
-  select(is_democracy, n,
-         prop_female_president, prop_male_president, gap_president_prop, prop_female_monarch, prop_male_monarch, gap_monarch_prop) |>
+  select(is_democracy, n, prop_female_president, prop_male_president, gap_president_prop, prop_female_monarch, prop_male_monarch, gap_monarch_prop) |>
   gt() |>
-  tab_header(
-    title    = md("**Gender Gaps in Executive Leadership by Democracy Status**"),
-    subtitle = "Proportions of Female and Male Leaders") |>
-  tab_spanner(
-    label   = "Presidents",
+  tab_header(title = md("**Gender Gaps in Executive Leadership by Democracy Status**"),
+    subtitle = "Average Percentages of Female and Male Leaders") |>
+  tab_spanner(label = "Presidents",
     columns = c(prop_female_president, prop_male_president, gap_president_prop)) |>
-  tab_spanner(
-    label   = "Monarchs",
+  tab_spanner(label = "Monarchs",
     columns = c(prop_female_monarch, prop_male_monarch, gap_monarch_prop)) |>
   cols_label(is_democracy = "Democracy Status",
-    n = "Sample Size", prop_female_president = "Prop. Female",
-    prop_male_president = "Prop. Male",
-    gap_president_prop = "Gap (M - F)",
-    prop_female_monarch = "Prop. Female",
-    prop_male_monarch = "Prop. Male",
-    gap_monarch_prop = "Gap (M - F)") |>
+    n = "Sample Size", prop_female_president = "Female",
+    prop_male_president = "Male",
+    gap_president_prop = "Gap",
+    prop_female_monarch = "Female",
+    prop_male_monarch = "Male",
+    gap_monarch_prop = "Gap") |>
   fmt_percent(columns = c(prop_female_president, prop_male_president, gap_president_prop, prop_female_monarch, prop_male_monarch, gap_monarch_prop),
     decimals = 1) |>
   fmt_integer(columns = n) |>
+  cols_align(align = "center",
+    columns = everything()) |>
   tab_style(style = cell_fill(color = "#D3D3D3"),
     locations = cells_column_spanners()) |>
   tab_style(style = cell_fill(color = "#D3D3D3"),
@@ -188,11 +243,19 @@ summarise_leadership_gender_gap("is_democracy") |>
     locations = cells_body(
       columns = gap_monarch_prop,
       rows = gap_monarch_prop < 0)) |>
-  tab_footnote(footnote  = "Positive values (shaded blue) indicate males are higher; negative values (shaded pink) indicate females are higher.",
+  tab_footnote(footnote  = "Positive values (shaded blue) indicate males are higher; negative values (shaded pink) indicate females are higher. Gap is calculated as M - F.",
     locations = cells_column_labels(columns = c(gap_president_prop, gap_monarch_prop))) |>
   opt_table_font(font = google_font("Source Serif 4"))
+```
 
-# Table 2: Accession Ages
+Presidents are overwhelmingly male in both democratic and non-democratic countries. Female presidents account for just 0.5% of presidents in non-democracies, compared to 5.6% in democracies. That is a noticeable difference, but it also shows how rare female presidents are overall. Even in democracies, more than 94% of presidents are men.
+
+Monarchies tell a different story. In non-democratic countries, monarchies are still heavily male, with men outnumbering women by about 84 percentage points. In democratic countries, the split is much closer, and women actually make up a slightly larger share of monarchs than men. So while democracy status seems to be linked with smaller gender gaps in executive leadership, the pattern depends on the type of leader. 
+
+We then looked at accession ages to see whether gender differences also appear in when leaders first take power.
+
+```{r}
+# new with center align
 summarise_leadership_gender_gap("is_democracy") |>
   mutate(is_democracy = ifelse(is_democracy, "Democracy", "Non-Democracy")) |>
   select(is_democracy, n,
@@ -205,18 +268,19 @@ summarise_leadership_gender_gap("is_democracy") |>
     columns = c(avg_accession_age_female_president, avg_accession_age_male_president, gap_president_accession_age)) |>
   tab_spanner(label = "Monarchs",
     columns = c(avg_accession_age_female_monarch, avg_accession_age_male_monarch, gap_monarch_accession_age)) |>
-  cols_label(
-    is_democracy = "Democracy Status",
+  cols_label(is_democracy = "Democracy Status",
     n = "Sample Size",
-    avg_accession_age_female_president = "Avg. Age (Female)",
-    avg_accession_age_male_president = "Avg. Age (Male)",
-    gap_president_accession_age = "Gap (M - F)",
-    avg_accession_age_female_monarch  = "Avg. Age (Female)",
-    avg_accession_age_male_monarch = "Avg. Age (Male)",
-    gap_monarch_accession_age = "Gap (M - F)") |>
+    avg_accession_age_female_president = "Female",
+    avg_accession_age_male_president = "Male",
+    gap_president_accession_age = "Gap",
+    avg_accession_age_female_monarch  = "Female",
+    avg_accession_age_male_monarch = "Male",
+    gap_monarch_accession_age = "Gap") |>
   fmt_number(columns  = c(avg_accession_age_female_president, avg_accession_age_male_president, gap_president_accession_age, avg_accession_age_female_monarch, avg_accession_age_male_monarch, gap_monarch_accession_age),
     decimals = 1) |>
   fmt_integer(columns = n) |>
+  cols_align(align = "center",
+    columns = everything()) |>
   tab_style(style = cell_fill(color = "#D3D3D3"),
     locations = cells_column_spanners()) |>
   tab_style(style = cell_fill(color = "#D3D3D3"),
@@ -239,16 +303,18 @@ summarise_leadership_gender_gap("is_democracy") |>
     locations = cells_body(
       columns = gap_monarch_accession_age,
       rows = gap_monarch_accession_age < 0)) |>
-  tab_footnote(footnote  = "Positive values (shaded blue) indicate males are higher; negative values (shaded pink) indicate females are higher.",
+  tab_footnote(footnote  = "Positive values (shaded blue) indicate males are higher; negative values (shaded pink) indicate females are higher. Gap is calculated as M - F.",
     locations = cells_column_labels(columns = c(gap_president_accession_age, gap_monarch_accession_age))) |>
   opt_table_font(font = google_font("Source Serif 4"))
 ```
 
-Female presidents are more common in democratic countries than in non-democratic ones, while the share of male presidents stays relatively consistent regardless of democracy status. The most notable finding in the accession age table is that female presidents in non-democratic countries take office at nearly 14 years older on average than male presidents. In democratic countries, that difference is much smaller, at under 3 years.
+Among presidents, the biggest age gap appears in non-democratic countries. Female presidents in non-democracies took office at an average age of 62.4, compared with 48.6 for male presidents. In democracies, the gap is much smaller, with female presidents taking office at 54.2 on average and male presidents at 57.0.
 
-For monarchs, the pattern is quite different. In non-democratic countries, male monarchs outnumber female monarchs by more than 84 percentage points, while in democratic countries the split is much closer to even. Monarchs also tend to come to power younger than presidents, usually somewhere between 30 and 35 years old, and this is especially true in non-democratic countries.
+For monarchs, the pattern is more consistent across democracy status. Male monarchs came to power later than female monarchs in both groups, by about 7 years in non-democratic countries and almost 8 years in democracies. This makes monarchs different from presidents: the presidential age gap changes a lot depending on democracy status, while the monarch age gap stays fairly similar.
 
-To get a clearer sense of how these age gaps have shifted over time, we constructed a ribbon plot showing the difference between average accession ages for male and female presidents and monarchs by decade. Because there were no recorded female presidents before 1980, we limited this portion of the analysis to years from 1980 onward.
+The table also shows a clear age difference between presidents and monarchs overall. Presidents tend to come to power much later in life, mostly in their 50s and 60s, while monarchs usually take power in their late 20s or 30s.
+
+To see how these age gaps have shifted over time, we constructed a ribbon plot showing the difference between average accession ages for male and female presidents and monarchs by decade. Because there were no recorded female presidents before 1980, we limited our visual to years from 1980 onward.
 
 ```{r}
 #| warning: false
@@ -281,86 +347,75 @@ plotMe %>%
   theme_minimal()
 ```
 
-From 1980 to 2020, gender differences in the age at which leaders take office vary between presidents and monarchs. Among presidents, the gap is small and relatively stable, with men only slightly older than women at the time they take office. Both groups also show a gradual increase in age over time. In contrast, monarchs show a much larger and growing gap. Male monarchs tend to take the throne at older ages, while female monarchs are generally younger, with their ages even decreasing in more recent years. Overall, gender disparities in age at taking office are minimal in presidential systems but much more pronounced in monarchical ones.
+Among presidents, the accession age gap is small and relatively stable. Female presidents were older on average than male presidents until around 1995, when the average accession age for male presidents overtook that of female presidents. The opposite change occurred around 2005, and afterwards female presidents remain older on average than male presidents.
 
-The next table examines how gender gaps appear in leadership across decades. It compares the proportions of female and male presidents over time to show how representation has shifted from 1950 to 2020.
+In contrast, monarchs show a much larger and growing gap. Male monarchs tend to take the throne at older ages, while female monarchs are generally younger, with their ages even decreasing in more recent years. Overall, gender disparities in age at taking office are minimal in presidential systems but much more pronounced in monarchical ones.
+
+After looking at democracy status, we also wanted to see how gender gaps in executive leadership changed over time. Grouping the data by decade shows whether women became more common among presidents and monarchs from 1950 to 2020.
 
 ```{r}
 #| results: asis
-# table with iteration
 group_vars <- c("decade")
 group_labels <- c("Decade")
 
 walk2(group_vars, group_labels, function(var, label) {
   tbl <- summarise_leadership_gender_gap(var) |>
-    select(all_of(var), n, prop_female_president, prop_male_president, gap_president_prop)
+    select(all_of(var), n, prop_female_president, prop_male_president, gap_president_prop, prop_female_monarch, prop_male_monarch, gap_monarch_prop)
   
   print(tbl |> gt() |>
-    tab_header(title = md(paste0("**Gender Gaps by ", label, "**"))) |>
-    cols_label(
-      !!sym(var)            := label,
-      n                      = "Sample Size",
-      prop_female_president  = "Prop. Female President",
-      prop_male_president    = "Prop. Male President",
-      gap_president_prop     = "Gap (M - F)"
-    ) |>
-    fmt_percent(
-      columns  = c(prop_female_president, prop_male_president, gap_president_prop),
+    tab_header(title = md(paste0("**Gender Gaps by ", label, "**")),
+               subtitle = "Percentages of Female and Male Leaders") |>
+    tab_spanner(label = "Presidents",
+      columns = c(prop_female_president, prop_male_president, gap_president_prop)) |>
+    tab_spanner(label = "Monarchs",
+      columns = c(prop_female_monarch, prop_male_monarch, gap_monarch_prop)) |>
+    cols_label(!!sym(var) := label,
+      n = "Sample Size",
+      prop_female_president = "Female",
+      prop_male_president = "Male",
+      gap_president_prop = "Gap (M - F)",
+      prop_female_monarch = "Female",
+      prop_male_monarch = "Male",
+      gap_monarch_prop = "Gap (M - F)") |>
+    fmt_percent(columns = c(prop_female_president, prop_male_president, gap_president_prop, prop_female_monarch, prop_male_monarch, gap_monarch_prop),
       decimals = 1) |>
     fmt_integer(columns = n) |>
+    cols_align(align = "center",
+      columns = everything()) |>
+    tab_options(table.width = pct(100),
+      table.font.size = px(18),
+      heading.title.font.size = px(26),
+      heading.subtitle.font.size = px(18),
+      column_labels.font.size = px(18),
+      row_group.font.size = px(18),
+      data_row.padding = px(10),
+      column_labels.padding = px(8),
+      heading.padding = px(8)) |>
+    opt_table_font(font = "serif") |>
+    tab_style(style = cell_fill(color = "#D3D3D3"),
+      locations = cells_column_spanners()) |>
     tab_style(style = cell_fill(color = "#D3D3D3"),
       locations = cells_column_labels()) |>
     tab_style(style = cell_fill(color = "#D3D3D3"),
-      locations = cells_title()) |>
-    opt_table_font(font = google_font("Source Serif 4")))
+      locations = cells_title()))
 })
 ```
 
-This table highlights the changes in gender gaps by decade, including the sample size, decade, proportion of female presidents, and proportion of male presidents. Highlighted in pink are the gender gaps, which as we can predict, decrease in proportion over time. For the first two decades that we have data for (1950-1970), there were solely male presidents, but during our final decade, 2010-2020, there was a gap of around 86%.
+Until the 1970s, there were no female presidents. The percentage of female presidents increased quickly over the decades, ending at 7% in the 2010s. The percentage of female monarchs also increased over the decades, but actually began decreasing in the 2000s and 2010s. 
 
-We ran a t-test to compare the means of the proportion of national parliament seats held by women between different democracy statuses.
+Across the gender representation measures, democracy status matters, but only to a point. The t-test shows that the difference in average representation is statistically significant, meaning it is unlikely to be due to random variation alone. Still, the boxplot shows a lot of overlap between the two groups, so democracy status does not fully lead to higher women’s representation.
 
-```{r}
-result <- t.test(prop_in_par ~ is_democracy, data = democracy_data)
-table_result <- tidy(result)
+Executive leadership shows an even larger gender gap. Female presidents are more common in democracies than in non-democracies, but presidents are overwhelmingly male in both groups. Monarchs show a different pattern: non-democratic monarchies are heavily male, while democratic monarchies are much closer to balanced. Overall, democracy status seems to affect the number of female leaders, but it does not remove gender inequality in political leadership.
 
-table_result |>
-  select(estimate1, estimate2, statistic, p.value, conf.low, conf.high, parameter) |>
-  gt() |>
-  tab_header(title = md("**Proportion in Parliament by Democracy Status**"), subtitle = "Welch Two-Sample t-Test") |>
-  cols_label(estimate1 = md("Mean<br>(Non-Democracy)"),
-    estimate2 = md("Mean<br>(Democracy)"),
-    statistic = md("*t*-statistic"),
-    p.value = md("*p*-value"),
-    conf.low = "95% CI Low",
-    conf.high = "95% CI High",
-    parameter = md("*df*")) |>
-  fmt_number(columns  = c(estimate1, estimate2, statistic, conf.low, conf.high),decimals = 3) |>
-  fmt_number(columns  = parameter,
-    decimals = 1) |>
-  fmt_scientific(columns = p.value,
-    decimals = 3) |>
-  tab_style(style = cell_fill(color = "#FAD77B"),
-    locations = cells_body(columns = p.value)) |>
-  tab_style(style = cell_text(weight = "bold"),
-    locations = cells_body(columns = p.value)) |>
-  tab_spanner(label = "Group Means",
-    columns = c(estimate1, estimate2)) |>
-  tab_spanner(label = "Confidence Interval",
-    columns = c(conf.low, conf.high)) |>
-  tab_footnote(footnote = "Highlighted cell indicates a statistically significant result.", locations = cells_column_labels(columns = p.value)) |>
-  tab_style(style = cell_fill(color = "#D3D3D3"),
-    locations = cells_title()) |>
-  tab_style(style = cell_fill(color = "#D3D3D3"),
-    locations = cells_column_labels()) |>
-  tab_style(style = cell_fill(color = "#D3D3D3"),
-    locations = cells_column_spanners()) |>
-  opt_table_font(font = google_font("Source Serif 4"))
-```
-
-The t-statistic is -4.591 and the p-value is very small. Also, the confidence interval does not include zero, so we reject the null hypothesis and conclude that there is a statistically significant difference in the mean proportion of seats held by women between democratic and non-democratic countries. This suggests that the true difference in means is not zero.
+Gender representation shows one way of how democracy relates to political power. Another way is whether democratic rule itself lasts, since countries can move into and out of democracy over time.
 
 ## Exploring The Global Effect of Democratic Transitions
+
+Democracy status can change over time. Some countries remain democratic or non-democratic for decades, while others switch between the two after elections, coups, leadership changes, or conflicts. Because of this, the global rise in democracy is not just about how many countries are democratic in a given year, but also about how often countries move into and out of democratic rule.
+
+Tracking these transitions from 1950 to 2020 gives a clearer view of where the overall trend comes from. It shows which periods had the most movement toward democracy, when reversals happened, and which countries changed status most often.
+
+We first examined the overall trend of the percentage of democratic countries. 
 
 ```{r}
 #arranging by country and year
@@ -400,21 +455,14 @@ summary_data <- democracy_data |>
     transitions_in = sum(to_democracy, na.rm = TRUE),
     transitions_out = sum(from_democracy, na.rm = TRUE))
 
-#after viewing this data, it would be helpful to analyze these trends using something like a plot, but looking at it as a table is overwhelming. To counteract this, we can condense the years to 5 or 10 years at the time to get a better look at overall trends. 
-#we have to create a new column to group the years
-democracy_data <- democracy_data |>
-  mutate(ten_yrs = floor(year / 10) * 10)
-#used the floor function here, that rounds a number down to the greatest integer less than or equal to it, here by 10s.
 summary_ten_yrs <- democracy_data |>
-  group_by(ten_yrs) |>
+  group_by(decade) |>
   summarize(
     prop_democracy = mean(is_democracy, na.rm = TRUE),
     transitions_in = sum(to_democracy, na.rm = TRUE),
     transitions_out = sum(from_democracy, na.rm = TRUE),
     .groups = "drop")
-```
 
-```{r}
 ggplot(summary_data, aes(x = year, y = prop_democracy)) +
   geom_point(color = pal[2], size = 2) +
   geom_line(color=pal[2], linewidth=0.75) +
@@ -427,20 +475,23 @@ ggplot(summary_data, aes(x = year, y = prop_democracy)) +
   theme_minimal()
 ```
 
-We first examined the overall trend of the percentage of democratic countries. In 1950, the percentage of democratic countries was at about 25%, before rising gradually through the 1960s. The percentage then stayed fairly stable around the mid-30% range through the 1970s and early 1980s. The largest increase happened around the late 1980s and early 1990s, when the percentage increased sharply to nearly 60%. After that, democracy continued to grow more slowly, reaching the mid-60% range in the 2010s before leveling off slightly by 2020.
+In 1950, the percentage of democratic countries was at about 25%, before rising gradually through the 1960s. The percentage then stayed fairly stable around the mid-30% range through the 1970s and early 1980s. The largest increase happened around the late 1980s and early 1990s, when the percentage increased sharply to nearly 60%. After that, democracy continued to grow more slowly, reaching the mid-60% range in the 2010s before leveling off slightly by 2020.
 
-Next, we analyzed the number of global transitions to and from democracies.
+To see when the biggest shifts happened, we looked at how many countries entered or left democracy in each period.
+
 ```{r}
 #| results: asis
 summary_ten_yrs |>
-  select(ten_yrs, transitions_in, transitions_out) |>
+  select(decade, transitions_in, transitions_out) |>
   gt() |>
   tab_header(title = md("**Democracy Transitions by Year**"),
     subtitle = "Transitions In and Out of Democracy") |>
-  cols_label(ten_yrs = "Decade",
-    transitions_in = "Transitions In",
-    transitions_out = "Transitions Out") |>
+  cols_label(decade = "Decade",
+    transitions_in = "In",
+    transitions_out =  "Out") |>
   fmt_integer(columns = c(transitions_in, transitions_out)) |>
+  cols_align(align = "center",
+    columns = everything()) |>
   tab_style(style = cell_fill(color = "#D3D3D3"),
     locations = cells_column_labels()) |>
   tab_style(style = cell_fill(color = "#D3D3D3"),
@@ -448,14 +499,15 @@ summary_ten_yrs |>
   opt_table_font(font = google_font("Source Serif 4"))
 ```
 
-This table shows democratic transitions by decade, offering a cleaner view of long-term trends in global democratization from 1950 to 2020. The 1990s stand out as the most transformative decade, with 39 transitions into democracy and only 11 out, reflecting the wave of democratization that followed the end of the Cold War. In contrast, the 1970s were the most stagnant period, with transitions in and out nearly balanced at 16 and 15 respectively and virtually no net change in the global proportion.
+The 1990s stand out as the most transformative decade, with 39 transitions into democracy and only 11 out, reflecting the wave of democratization that followed the end of the Cold War. In contrast, the 1970s were the most stagnant period, with transitions in and out nearly balanced at 16 and 15 respectively and virtually no net change in the global proportion. 
+
+Our area plot below displays the counts of democratic transitions over the years visually.
 
 ```{r}
 #| fig-alt: The area plot below shows the count of democractic transitions in and out, where the pink represents a country gaining a democratic status, and the blue represents a country losing a democratic status throughout the years.
 
 summary_data_long <- summary_data |>
-  pivot_longer(
-    cols = c(transitions_in, transitions_out),
+  pivot_longer(cols = c(transitions_in, transitions_out),
     names_to = "type",
     values_to = "count")
 
@@ -474,9 +526,9 @@ ggplot(summary_data_long, aes(x = year, y = count, fill = type)) +
   theme_minimal()
 ```
 
-The area plot reveals that countries do not transition into democracies at a steady rate, but instead noticeably fluctuate over time. While there are often more transitions into democracy than out of it, this pattern appears variable. The process of democratization is unstable, as transitions out of democracy are present throughout the years and do not seem to be declining. One particularly noticeable feature is seen in the 1990s, where there is a sharp increase in the amount of countries that transitioned into a democracy. We can see that democratization is not a smooth, continuous process. 
+The area plot shows that democratic transitions happened in bursts rather than at a steady pace. Transitions into democracy were often more common than transitions out, especially during the 1990s, but reversals continued throughout the full time period. This supports the idea that democratization was not a smooth or one-directional process.
 
-We also wanted to identify which countries had the most transitions into and out of democracy from 1950-2020.
+We also wanted to identify which countries had the most democratic transitions.
 
 ```{r}
 topn_countries <- function(start_year = 1950, end_year = 2020, num_countries = 10) {
@@ -488,16 +540,14 @@ topn_countries <- function(start_year = 1950, end_year = 2020, num_countries = 1
     filter(year >= start_year & year <= end_year) |>
     arrange(country_name, year) |>
     group_by(country_name) |>
-    mutate(
-      prev_year = lag(is_democracy),
+    mutate(prev_year = lag(is_democracy),
       to_democracy = ifelse(is_democracy == 1 & prev_year == 0, 1, 0),
       from_democracy = ifelse(is_democracy == 0 & prev_year == 1, 1, 0)) |>
     ungroup()
   
   country_table <- data |>
     group_by(country_name) |>
-    summarize(
-      transitions_in = sum(to_democracy, na.rm = TRUE),
+    summarize(transitions_in = sum(to_democracy, na.rm = TRUE),
       transitions_out = sum(from_democracy, na.rm = TRUE),
       total_transitions = transitions_in + transitions_out,
       .groups = "drop") |>
@@ -506,9 +556,7 @@ topn_countries <- function(start_year = 1950, end_year = 2020, num_countries = 1
   
   return(country_table)
 }
-
 country_transitions <- topn_countries(1950, 2020, 10)
-
 country_transitions |>
   gt() |>
   tab_header(title = md("**Top 10 Countries by Democratic Transitions**"),
@@ -518,6 +566,8 @@ country_transitions |>
     transitions_out = "Transitions Out",
     total_transitions = "Total Transitions") |>
   fmt_integer(columns = c(transitions_in, transitions_out, total_transitions)) |>
+  cols_align(align = "center",
+    columns = everything()) |>
   tab_style(style = cell_fill(color = "#D3D3D3"),
     locations = cells_column_labels()) |>
   tab_style(style = cell_fill(color = "#D3D3D3"),
@@ -525,9 +575,9 @@ country_transitions |>
   opt_table_font(font = google_font("Source Serif 4"))
 ```
 
-Argentina and Thailand experienced the highest number of democratic transitions between 1950 and 2020, followed by Ghana, Pakistan, and Peru. The countries listed in the table suggest repeated shifts between democratic and non-democratic rule, reflecting political instability over time. Together with the area plot above, this table reinforces that democratization is not a steady or linear process, but one marked by periods of fluctuation.
+Argentina and Thailand experienced the highest number of democratic transitions between 1950 and 2020, followed by Ghana, Pakistan, and Peru. Having more repeated shifts between democratic and non-democratic rule indicates political instability.
 
-Lastly, our table earlier showed that the most transitions into democracy happened between 1980-2010. We created another table focusing in on the top 10 countries in this time frame.
+Lastly, our table earlier showed that the most transitions into democracy happened between 1980-2010. We created another table focusing in on the top ten countries in this time frame.
 
 ```{r}
 country_transitions2 <- topn_countries(1980, 2010, 10)
@@ -536,10 +586,12 @@ country_transitions2 |>
   tab_header(title = md("**Top 10 Countries by Democratic Transitions**"),
     subtitle = "Total Transitions Into and Out of Democracy from 1980-2010") |>
   cols_label(country_name = "Country",
-    transitions_in = "Transitions In",
-    transitions_out = "Transitions Out",
+    transitions_in = "In",
+    transitions_out = "Out",
     total_transitions = "Total Transitions") |>
   fmt_integer(columns = c(transitions_in, transitions_out, total_transitions)) |>
+  cols_align(align = "center",
+    columns = everything()) |>
   tab_style(style = cell_fill(color = "#D3D3D3"),
     locations = cells_column_labels()) |>
   tab_style(style = cell_fill(color = "#D3D3D3"),
@@ -547,12 +599,13 @@ country_transitions2 |>
   opt_table_font(font = google_font("Source Serif 4"))
 ```
 
-In this table and the previous one, we see that the countries listed all have four or fewer transitions in or out of democracy in the respective time frames. Although this is not a very large number, even a small number of regime changes can indicate meaningful political instability, since transitions between democratic and non-democratic systems often reflect major shifts in leadership and ideology. This suggests that a key part of democratization is not only becoming democratic, but also maintaining democratic rule over time. 
+In this table and the previous one, we see that the countries listed all have four or fewer transitions in or out of democracy in the respective time frames. Although this is not a very large number, even a small number of transitions indicates meaningful political instability, since transitions between democratic and non-democratic systems often reflect major shifts in leadership and ideology. This suggests that a key part of democratization is not only becoming democratic, but also maintaining democratic rule over time. 
 
-## Conclusion
+## Where the Gap Remains
 
-Overall, our analysis shows that democracy is related to gender representation and political stability, but not always in simple ways. Democratic countries had slightly higher average proportions of women in parliament than non-democratic countries, and the t-test showed that this difference was statistically significant. However, the actual difference in means was fairly small, suggesting that democracy alone does not guarantee equal representation. Female presidents became more common over time, but male presidents still made up the large majority of presidential leaders across every decade. Accession-age gaps were smaller and more stable among presidents, while monarchs showed larger differences by gender.
+Overall, we find that democracy is related to gender representation and political stability, but not always in simple ways. Democratic countries had slightly higher average proportions of women in parliament than non-democratic countries, and our t-test showed that this difference was statistically significant. However, the actual difference in means was fairly small, suggesting that democracy alone does not guarantee equal representation. Female presidents became more common over time, but male presidents still made up the large majority of presidential leaders across every decade. Accession age gaps were smaller and more stable among presidents, while monarchs showed larger differences by gender.
 
-Our analysis of democratic transitions also showed that global democratization has been unpredictable. The percentage of democratic countries increased substantially from 1950 to 2020, especially around the late 1980s and early 1990s, but this growth was not steady. Countries continued to move both into and out of democracy over time, showing that democratization includes both progress and reversal. The country-level transition tables suggest that even a small number of regime changes can reflect meaningful political instability.
+We also saw that global democratization has been unpredictable. The percentage of democratic countries increased substantially from 1950 to 2020, especially around the late 1980s and early 1990s, but this growth was not steady. Countries continued to move both into and out of democracy over time, showing that democratization includes both progress and reversal. The country-level transition tables suggest that even a small number of regime changes can reflect meaningful political instability.
 
-Taken together, these findings show that becoming a democratic country can be associated with greater gender representation and broader political change, but maintaining democratic rule and achieving gender equality remain ongoing challenges. Democracy may create more opportunities for representation, but the persistence of gender gaps and repeated regime transitions show that political progress is not automatic or permanent.
+Becoming democratic is associated with some gains in representation, but the data do not show democracy as a simple solution to gender inequality or political instability. Women remain underrepresented in many leadership roles, and countries continue to move into and out of democratic rule. The democracy gap, then, is not only about whether a country is democratic, but also about who gains power within that system and whether the system lasts.
+

@@ -34,9 +34,9 @@ This proportion is available for most countries from 1997-2020. There are missin
 
 ## Links
 
--   [SDG 5 description](https://sdgs.un.org/goals/goal5)
--   [Where we found the data](https://databank.worldbank.org/source/sustainable-development-goals-(sdgs)#)
--   [Variable description from World Bank](https://databank.worldbank.org/metadataglossary/world-development-indicators/series/SG.GEN.PARL.ZS)
+- [SDG 5 description](https://sdgs.un.org/goals/goal5)
+- [Where we found the data](https://databank.worldbank.org/source/sustainable-development-goals-(sdgs)#)
+- [Variable description from World Bank](https://databank.worldbank.org/metadataglossary/world-development-indicators/series/SG.GEN.PARL.ZS)
 
 ## New Data from Demographics and Financial Data API
 
